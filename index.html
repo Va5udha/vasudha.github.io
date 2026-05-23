@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vasudha Dixit · Oracle Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#16003a;
+  --ink2:#2d1260;
+  --ink3:#7c6fa0;
+  --bg:#0d0020;
+  --bg2:#130030;
+  --indigo:#a78bfa;
+  --indigo2:#c4b5fd;
+  --coral:#ff6b6b;
+  --coral2:#ff8e8e;
+  --mint:#2dd4bf;
+  --gold:#fbbf24;
+  --white:#ffffff;
+  --border:rgba(255,255,255,0.12);
+  --border2:rgba(255,255,255,0.06);
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Syne',sans-serif;
+  color:#f0eeff;
+  overflow-x:clip;
+  background:#0d0020;
+}
+
+/* ── AURORA MESH BACKGROUND ── */
+.aurora-bg{
+  position:fixed;inset:0;z-index:-1;
+  background:#0d0020;
+  overflow:hidden;
+}
+.aurora-bg::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 5%,  rgba(236,72,153,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 65% 85%, rgba(6,182,212,0.45)  0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 10% 80%, rgba(16,185,129,0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 90% 50%, rgba(251,146,60,0.30) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 50%, rgba(167,139,250,0.20) 0%, transparent 60%);
+  animation:auroraShift 14s ease-in-out infinite alternate;
+}
+.aurora-bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 65% 55% at 75% 20%, rgba(99,102,241,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 25% 70%, rgba(244,114,182,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 45% 40% at 55% 40%, rgba(34,211,238,0.25) 0%, transparent 50%);
+  animation:auroraShift2 18s ease-in-out infinite alternate;
+}
+@keyframes auroraShift{
+  0%  {transform:translate(0,0) scale(1);}
+  33% {transform:translate(3%,2%) scale(1.04);}
+  66% {transform:translate(-2%,3%) scale(0.97);}
+  100%{transform:translate(2%,-2%) scale(1.03);}
+}
+@keyframes auroraShift2{
+  0%  {transform:translate(0,0) scale(1.02);}
+  50% {transform:translate(-3%,-2%) scale(0.96);}
+  100%{transform:translate(2%,3%) scale(1.05);}
+}
+/* Noise grain overlay for texture */
+.aurora-bg .grain{
+  position:absolute;inset:0;opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+
+/* ── CURSOR DOT ── */
+.cursor{width:10px;height:10px;background:var(--coral);border-radius:50%;position:fixed;pointer-events:none;z-index:9999;transition:transform 0.15s;mix-blend-mode:screen;}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 3rem;height:64px;
+  background:rgba(8,0,20,0.82);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;
+  letter-spacing:-0.02em;color:#fff;text-decoration:none;
+  display:flex;align-items:center;gap:8px;
+}
+.logo-pill{
+  background:rgba(167,139,250,0.25);color:#e0d4ff;
+  border:1px solid rgba(167,139,250,0.4);
+  font-size:0.6rem;font-weight:700;letter-spacing:0.1em;
+  padding:3px 8px;border-radius:20px;text-transform:uppercase;
+}
+.nav-links{display:flex;align-items:center;gap:0.2rem;}
+.nav-links a{
+  font-size:0.78rem;font-weight:600;letter-spacing:0.04em;
+  color:rgba(255,255,255,0.75);text-decoration:none;padding:0.4rem 0.9rem;
+  border-radius:6px;transition:all 0.15s;text-transform:uppercase;
+}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,0.1);}
+.nav-cta{
+  background:rgba(167,139,250,0.22);color:#e0d4ff;
+  border:1px solid rgba(167,139,250,0.45);
+  font-size:0.78rem;font-weight:700;
+  padding:0.45rem 1.1rem;border-radius:6px;text-decoration:none;
+  letter-spacing:0.04em;text-transform:uppercase;transition:all 0.15s;
+}
+.nav-cta:hover{background:var(--indigo);color:#fff;border-color:var(--indigo);}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:8rem 3rem 4rem;max-width:1100px;margin:0 auto;
+  position:relative;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:500;
+  color:#5eead4;letter-spacing:0.08em;text-transform:uppercase;
+  margin-bottom:2rem;
+  text-shadow:0 0 20px rgba(45,212,191,0.6);
+}
+.hero-tag::before{content:'';width:32px;height:1.5px;background:#5eead4;}
+
+/* ── HANDWRITING NAME ── */
+.hero-name-script{
+  font-family:'Dancing Script',cursive;
+  font-weight:700;
+  font-size:clamp(4rem,12vw,9.5rem);
+  line-height:1.2;
+  letter-spacing:-0.01em;
+  margin-bottom:0.2em;
+  background:linear-gradient(135deg,#fff 0%,#e0d4ff 30%,#ff9fd4 60%,#ffd580 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 2px 30px rgba(167,139,250,0.5));
+}
+.hero-sub{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:clamp(1.2rem,2.5vw,1.8rem);
+  color:#fff;
+  margin-bottom:2.5rem;letter-spacing:-0.01em;
+  text-shadow:0 2px 20px rgba(0,0,0,0.6);
+}
+.hero-sub em{font-style:normal;color:#fbbf24;}
+.hero-row{display:flex;align-items:flex-end;gap:3rem;flex-wrap:wrap;}
+.hero-desc{
+  font-family:'Syne',sans-serif;font-size:1rem;font-weight:400;
+  color:rgba(255,255,255,0.92);line-height:2;max-width:440px;
+  text-shadow:0 1px 12px rgba(0,0,0,0.7);padding-bottom:0.3rem;
+}
+.hero-desc em{font-family:'Instrument Serif',serif;font-style:italic;color:#fbbf24;}
+.hero-actions{display:flex;flex-direction:column;gap:0.8rem;min-width:200px;}
+.btn-main{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:#fff;text-decoration:none;
+  font-size:0.85rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  padding:0.9rem 1.8rem;border-radius:6px;transition:all 0.2s;
+  font-family:'Syne',sans-serif;
+  box-shadow:0 4px 24px rgba(124,58,237,0.5);
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.65);}
+.btn-ghost{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:rgba(255,255,255,0.1);color:#fff;text-decoration:none;
+  font-size:0.85rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  padding:0.9rem 1.8rem;border-radius:6px;border:1.5px solid rgba(255,255,255,0.3);
+  transition:all 0.2s;font-family:'Syne',sans-serif;
+  backdrop-filter:blur(8px);
+}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.18);}
+
+/* Floating stat chips */
+.hero-chips{
+  display:flex;flex-wrap:wrap;gap:0.6rem;
+  margin-top:3rem;
+}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0.5rem 1rem;border-radius:40px;
+  font-family:'JetBrains Mono',monospace;font-size:0.73rem;font-weight:500;
+  border:1.5px solid rgba(255,255,255,0.2);
+  background:rgba(8,0,20,0.55);
+  color:#fff;
+  backdrop-filter:blur(12px);
+  text-shadow:0 1px 6px rgba(0,0,0,0.4);
+}
+.chip .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.chip-indigo{border-color:rgba(167,139,250,0.5);background:rgba(124,58,237,0.25);}
+.chip-indigo .dot{background:#c4b5fd;}
+.chip-coral{border-color:rgba(255,107,107,0.5);background:rgba(232,68,10,0.25);}
+.chip-coral .dot{background:#fca5a5;}
+.chip-mint{border-color:rgba(45,212,191,0.5);background:rgba(5,150,105,0.25);}
+.chip-mint .dot{background:#6ee7b7;}
+.chip-gold{border-color:rgba(251,191,36,0.5);background:rgba(180,130,0,0.25);}
+.chip-gold .dot{background:#fde68a;}
+
+/* ── MARQUEE BAND ── */
+.marquee-band{
+  background:var(--ink);color:#fff;
+  overflow:hidden;padding:1rem 0;
+  border-top:2px solid var(--indigo);
+  border-bottom:2px solid var(--coral);
+}
+.marquee-track{
+  display:flex;gap:0;
+  animation:marquee 25s linear infinite;
+  white-space:nowrap;
+}
+.marquee-item{
+  font-family:'JetBrains Mono',monospace;font-size:0.78rem;
+  font-weight:400;letter-spacing:0.05em;text-transform:uppercase;
+  padding:0 2rem;color:rgba(255,255,255,0.85);
+  display:inline-flex;align-items:center;gap:1rem;
+}
+.marquee-item .sep{color:var(--coral);font-size:1rem;}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* ── SECTION BASE ── */
+.s{max-width:1100px;margin:0 auto;padding:6rem 3rem;}
+.s-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:600;
+  letter-spacing:0.15em;text-transform:uppercase;
+  color:rgba(255,255,255,0.85);margin-bottom:0.5rem;
+  display:flex;align-items:center;gap:10px;
+}
+.s-label::after{content:'';flex:1;max-width:60px;height:1px;background:rgba(255,255,255,0.15);}
+.s-title{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(2rem,4vw,3rem);letter-spacing:-0.04em;
+  line-height:1.05;margin-bottom:0.4rem;color:#fff;
+  text-shadow:0 2px 20px rgba(0,0,0,0.5);
+}
+.s-title em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:rgba(255,255,255,0.85);}
+
+/* ── SKILLS ── */
+.skills-bg{background:rgba(5,0,15,0.55);border-top:1px solid rgba(255,255,255,0.08);border-bottom:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(2px);}
+
+.skill-groups{display:flex;flex-direction:column;gap:2px;margin-top:3rem;}
+.skill-row{
+  display:grid;grid-template-columns:220px 1fr;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(5,0,15,0.4);
+  transition:background 0.2s;
+}
+.skill-row:first-child{border-radius:12px 12px 0 0;}
+.skill-row:last-child{border-radius:0 0 12px 12px;}
+.skill-row:hover{background:rgba(255,255,255,0.06);}
+.skill-cat{
+  padding:1.3rem 1.5rem;
+  border-right:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;gap:10px;
+}
+.skill-cat-icon{
+  width:28px;height:28px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:700;font-family:'JetBrains Mono',monospace;
+  flex-shrink:0;
+}
+.skill-cat-name{
+  font-size:0.8rem;font-weight:700;letter-spacing:0.04em;
+  text-transform:uppercase;color:rgba(255,255,255,0.75);
+}
+.skill-pills{
+  padding:1.3rem 1.5rem;
+  display:flex;flex-wrap:wrap;align-items:center;gap:0.4rem;
+}
+.spill{
+  font-family:'JetBrains Mono',monospace;font-size:0.73rem;
+  padding:0.3rem 0.75rem;border-radius:4px;border:1px solid;font-weight:500;
+}
+.sp-indigo{background:rgba(124,58,237,0.3);border-color:rgba(167,139,250,0.5);color:#e0d4ff;}
+.sp-coral{background:rgba(220,38,38,0.25);border-color:rgba(255,107,107,0.5);color:#fecaca;}
+.sp-mint{background:rgba(5,150,105,0.25);border-color:rgba(45,212,191,0.45);color:#a7f3d0;}
+.sp-gold{background:rgba(180,130,0,0.25);border-color:rgba(251,191,36,0.45);color:#fef08a;}
+.sp-white{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.70);color:rgba(255,255,255,0.85);}
+
+/* ── EXPERIENCE ── */
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:3rem;}
+@media(max-width:700px){.exp-grid{grid-template-columns:1fr;}}
+.exp-card{
+  background:rgba(5,0,18,0.72);
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:16px;padding:2rem;
+  position:relative;overflow:visible;
+  transition:transform 0.2s,border-color 0.2s;
+  backdrop-filter:blur(16px);
+}
+.exp-card:hover{transform:translateY(-4px);}
+.exp-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.exp-card.c-indigo::before{background:linear-gradient(90deg,#7c3aed,#a78bfa);}
+.exp-card.c-indigo:hover{border-color:rgba(167,139,250,0.5);}
+.exp-card.c-coral::before{background:linear-gradient(90deg,#e8440a,#ff6b6b);}
+.exp-card.c-coral:hover{border-color:rgba(255,107,107,0.5);}
+.exp-card.c-mint::before{background:linear-gradient(90deg,#059669,#2dd4bf);}
+.exp-card.c-mint:hover{border-color:rgba(45,212,191,0.5);}
+.exp-card.c-break{
+  border:1.5px dashed rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.04);
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;
+}
+.exp-date{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:500;
+  color:rgba(255,255,255,0.85);letter-spacing:0.06em;margin-bottom:0.7rem;
+}
+.exp-role{font-size:1.08rem;font-weight:700;color:#fff;margin-bottom:0.2rem;letter-spacing:-0.02em;}
+.exp-co{font-size:0.85rem;font-weight:600;margin-bottom:1.2rem;}
+.exp-co.indigo{color:#c4b5fd;}
+.exp-co.coral{color:#fca5a5;}
+.exp-co.mint{color:#6ee7b7;}
+.exp-bullets{list-style:none;}
+.exp-bullets li{
+  font-size:0.88rem;color:rgba(255,255,255,0.82);line-height:1.7;
+  padding-left:1rem;position:relative;margin-bottom:0.45rem;
+}
+.exp-bullets li::before{
+  content:'';position:absolute;left:0;top:9px;
+  width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.4);
+}
+.exp-bullets li strong{color:#fff;font-weight:700;}
+.exp-stat-row{display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:1.2rem;}
+.exp-stat{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  padding:0.28rem 0.7rem;border-radius:4px;
+  background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.15);
+  color:rgba(255,255,255,0.75);
+}
+.exp-stat strong{font-weight:700;color:#fff;}
+.break-emoji{font-size:2.5rem;margin-bottom:0.8rem;}
+.break-title{font-size:1rem;font-weight:700;color:#fff;margin-bottom:0.5rem;letter-spacing:-0.02em;}
+.break-sub{font-size:0.88rem;color:rgba(255,255,255,0.7);line-height:1.7;font-family:'Instrument Serif',serif;font-style:italic;}
+
+/* ── CERTS ── */
+.certs-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:2.5rem;}
+.cert{
+  flex:1;min-width:260px;
+  background:rgba(5,0,18,0.7);border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:12px;padding:1.5rem;
+  display:flex;align-items:center;gap:1rem;
+  transition:border-color 0.2s;backdrop-filter:blur(12px);
+}
+.cert:hover{border-color:rgba(167,139,250,0.5);}
+.cert-badge{
+  width:48px;height:48px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;
+  font-weight:700;text-align:center;line-height:1.3;
+}
+.cert-name{font-size:0.9rem;font-weight:600;color:#fff;margin-bottom:0.25rem;line-height:1.3;}
+.cert-meta{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:rgba(255,255,255,0.85);}
+
+/* ── BLOG ── */
+.blog-bg{background:rgba(5,0,15,0.45);border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);}
+.posts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.2rem;margin-top:3rem;}
+.post{
+  background:rgba(5,0,18,0.72);border:1.5px solid rgba(255,255,255,0.11);
+  border-radius:14px;padding:1.6rem;text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;transition:all 0.2s;
+  position:relative;overflow:visible;backdrop-filter:blur(14px);
+}
+.post::after{
+  content:'→';position:absolute;bottom:1.4rem;right:1.4rem;
+  font-size:1.1rem;opacity:0;transition:opacity 0.2s,transform 0.2s;
+  transform:translateX(-6px);color:#c4b5fd;
+}
+.post:hover{transform:translateY(-4px);border-color:rgba(167,139,250,0.4);}
+.post:hover::after{opacity:1;transform:translateX(0);}
+.post-tag{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;
+  font-weight:600;text-transform:uppercase;letter-spacing:0.1em;
+  padding:0.28rem 0.7rem;border-radius:4px;
+  display:inline-block;margin-bottom:1rem;width:fit-content;border:1px solid;
+}
+.pt-indigo{background:rgba(124,58,237,0.3);border-color:rgba(167,139,250,0.5);color:#e0d4ff;}
+.pt-coral{background:rgba(220,38,38,0.25);border-color:rgba(255,107,107,0.45);color:#fecaca;}
+.pt-mint{background:rgba(5,150,105,0.25);border-color:rgba(45,212,191,0.4);color:#a7f3d0;}
+.pt-gold{background:rgba(180,130,0,0.25);border-color:rgba(251,191,36,0.4);color:#fef08a;}
+.post-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:1.02rem;
+  letter-spacing:-0.025em;line-height:1.35;margin-bottom:0.7rem;color:#fff;
+}
+.post-blurb{font-size:0.87rem;color:rgba(255,255,255,0.75);line-height:1.75;flex:1;font-weight:400;margin-bottom:1.5rem;}
+.post-foot{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:rgba(255,255,255,0.85);}
+.post-draft{
+  border-style:dashed;background:rgba(255,255,255,0.02);
+  align-items:center;justify-content:center;text-align:center;
+  min-height:200px;cursor:default;
+}
+.post-draft:hover{transform:none;border-color:rgba(255,255,255,0.1);}
+.post-draft::after{display:none;}
+.draft-msg{font-size:0.84rem;color:rgba(255,255,255,0.80);font-family:'Instrument Serif',serif;font-style:italic;}
+
+/* ── CONTACT ── */
+.contact-layout{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:3rem;align-items:start;}
+@media(max-width:700px){.contact-layout{grid-template-columns:1fr;}}
+.contact-bigtext{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:clamp(1.5rem,3vw,2.2rem);color:#fff;
+  line-height:1.45;
+  text-shadow:0 2px 20px rgba(0,0,0,0.5);
+}
+.contact-bigtext em{font-style:normal;color:#c4b5fd;}
+.contact-cards{display:flex;flex-direction:column;gap:0.7rem;}
+.cc{
+  display:flex;align-items:center;gap:0.9rem;
+  background:rgba(5,0,18,0.65);border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:10px;padding:0.9rem 1.1rem;
+  text-decoration:none;color:inherit;
+  transition:all 0.18s;backdrop-filter:blur(12px);
+}
+.cc:hover{border-color:rgba(167,139,250,0.5);transform:translateX(4px);background:rgba(124,58,237,0.2);}
+.cc-icon{
+  width:36px;height:36px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;
+}
+.cc-lbl{font-size:0.72rem;color:rgba(255,255,255,0.85);font-family:'JetBrains Mono',monospace;}
+.cc-val{font-size:0.9rem;font-weight:600;color:#fff;}
+
+/* ── FOOTER ── */
+footer{
+  background:rgba(4,0,14,0.9);
+  border-top:1px solid rgba(255,255,255,0.08);
+  padding:3rem;
+  display:flex;flex-direction:column;align-items:center;gap:1.2rem;
+  backdrop-filter:blur(20px);
+}
+.footer-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;
+  letter-spacing:-0.05em;color:#fff;
+}
+.footer-logo span{color:#ff8e8e;}
+.footer-links{display:flex;gap:0.3rem;flex-wrap:wrap;justify-content:center;}
+.footer-links a{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.88);text-decoration:none;padding:0.3rem 0.7rem;
+  border-radius:4px;transition:color 0.15s;text-transform:uppercase;letter-spacing:0.05em;
+}
+.footer-links a:hover{color:#c4b5fd;}
+.footer-divider{width:1px;height:14px;background:rgba(255,255,255,0.2);}
+.footer-quip{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:1rem;color:rgba(255,255,255,0.90);
+  text-align:center;line-height:1.7;
+}
+.footer-quip span{color:rgba(255,255,255,0.75);display:block;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-style:normal;margin-top:0.5rem;letter-spacing:0.04em;}
+
+/* ── RESPONSIVE NAV ── */
+@media(max-width:700px){
+  nav{padding:0 1.2rem;}
+  .nav-links{display:none;}
+  .hero{padding:7rem 1.5rem 3rem;}
+  .s{padding:4rem 1.5rem;}
+  footer{padding:2rem 1.5rem;}
+  .hero-name-script{font-size:clamp(3rem,14vw,5rem);}
+  .hero-row{flex-direction:column;gap:2rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora-bg"><div class="grain"></div></div>
+<div class="cursor" id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    VD
+    <span class="logo-pill">Oracle Dev</span>
+  </a>
+  <div class="nav-links">
+    <a href="#skills">Skills</a>
+    <a href="#experience">Experience</a>
+    <a href="#blog">Notes</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <a href="mailto:vasudhadixit27@gmail.com" class="nav-cta">Hire me →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="hero-tag">Available now · Mumbai · Remote / Hybrid</div>
+  <h1 class="hero-name-script">Vasudha Dixit</h1>
+  <p class="hero-sub">Oracle PL/SQL Developer. Database whisperer. <em>Occasional chai philosopher.</em></p>
+
+  <div class="hero-row">
+    <p class="hero-desc">
+      Six and a half years of making insurance systems run smoother, faster, and without the 2 AM production alerts that ruin everyone's sleep — <em>including mine.</em> I specialise in Oracle PL/SQL, Oracle Forms & Reports, and the TIA insurance platform.
+      <br><br>
+      Currently on a career break for family. Recharged, caffeinated, and very much ready to get back to the code.
+    </p>
+    <div class="hero-actions">
+      <a href="mailto:vasudhadixit27@gmail.com" class="btn-main">Say hello →</a>
+      <a href="#experience" class="btn-ghost">See my work</a>
+    </div>
+  </div>
+
+  <div class="hero-chips">
+    <div class="chip chip-indigo"><span class="dot"></span>6.5 yrs Oracle experience</div>
+    <div class="chip chip-coral"><span class="dot"></span>30+ P1 fires extinguished</div>
+    <div class="chip chip-mint"><span class="dot"></span>45% backlog reduction</div>
+    <div class="chip chip-gold"><span class="dot"></span>TIA platform specialist</div>
+    <div class="chip"><span class="dot" style="background:var(--ink3);"></span>Immediate joiner</div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-band">
+  <div class="marquee-track">
+    <span class="marquee-item">Oracle PL/SQL <span class="sep">✦</span></span>
+    <span class="marquee-item">Oracle Forms & Reports <span class="sep">✦</span></span>
+    <span class="marquee-item">TIA · Sapiens Platform <span class="sep">✦</span></span>
+    <span class="marquee-item">Performance Tuning <span class="sep">✦</span></span>
+    <span class="marquee-item">Insurance Domain <span class="sep">✦</span></span>
+    <span class="marquee-item">Production Support L2/L3 <span class="sep">✦</span></span>
+    <span class="marquee-item">UNIX Shell Scripting <span class="sep">✦</span></span>
+    <span class="marquee-item">Execution Plans <span class="sep">✦</span></span>
+    <span class="marquee-item">Oracle PL/SQL <span class="sep">✦</span></span>
+    <span class="marquee-item">Oracle Forms & Reports <span class="sep">✦</span></span>
+    <span class="marquee-item">TIA · Sapiens Platform <span class="sep">✦</span></span>
+    <span class="marquee-item">Performance Tuning <span class="sep">✦</span></span>
+    <span class="marquee-item">Insurance Domain <span class="sep">✦</span></span>
+    <span class="marquee-item">Production Support L2/L3 <span class="sep">✦</span></span>
+    <span class="marquee-item">UNIX Shell Scripting <span class="sep">✦</span></span>
+    <span class="marquee-item">Execution Plans <span class="sep">✦</span></span>
+  </div>
+</div>
+
+<!-- SKILLS -->
+<div class="skills-bg" id="skills">
+<div class="s">
+  <div class="s-label">My toolkit</div>
+  <h2 class="s-title">What I actually know<br><em>— not just list on a CV</em></h2>
+
+  <div class="skill-groups">
+    <div class="skill-row">
+      <div class="skill-cat">
+        <div class="skill-cat-icon" style="background:rgba(67,56,202,0.2);color:#a5b4fc;">PL</div>
+        <span class="skill-cat-name">Core Oracle</span>
+      </div>
+      <div class="skill-pills">
+        <span class="spill sp-indigo">PL/SQL</span>
+        <span class="spill sp-indigo">Oracle SQL</span>
+        <span class="spill sp-indigo">Oracle 11g</span>
+        <span class="spill sp-indigo">Oracle 12c</span>
+        <span class="spill sp-white">Packages & Procedures</span>
+        <span class="spill sp-white">Triggers</span>
+        <span class="spill sp-white">Functions</span>
+        <span class="spill sp-white">Bulk Processing</span>
+      </div>
+    </div>
+    <div class="skill-row">
+      <div class="skill-cat">
+        <div class="skill-cat-icon" style="background:rgba(232,68,10,0.2);color:#fca78e;">⚡</div>
+        <span class="skill-cat-name">Performance</span>
+      </div>
+      <div class="skill-pills">
+        <span class="spill sp-coral">Execution Plans</span>
+        <span class="spill sp-coral">Indexing</span>
+        <span class="spill sp-coral">Query Hints</span>
+        <span class="spill sp-coral">BULK COLLECT</span>
+        <span class="spill sp-white">FORALL</span>
+        <span class="spill sp-white">Batch Optimisation</span>
+        <span class="spill sp-white">ANSI SQL</span>
+      </div>
+    </div>
+    <div class="skill-row">
+      <div class="skill-cat">
+        <div class="skill-cat-icon" style="background:rgba(5,196,138,0.2);color:#6ee7b7;">UI</div>
+        <span class="skill-cat-name">Forms & Reports</span>
+      </div>
+      <div class="skill-pills">
+        <span class="spill sp-mint">Oracle Forms</span>
+        <span class="spill sp-mint">Oracle Reports</span>
+        <span class="spill sp-white">Custom Business Rules</span>
+        <span class="spill sp-white">Multi-country Layouts</span>
+        <span class="spill sp-white">Regulatory Reports</span>
+        <span class="spill sp-white">Financial Reports</span>
+      </div>
+    </div>
+    <div class="skill-row">
+      <div class="skill-cat">
+        <div class="skill-cat-icon" style="background:rgba(245,200,66,0.2);color:#fde68a;">TIA</div>
+        <span class="skill-cat-name">Platform & Domain</span>
+      </div>
+      <div class="skill-pills">
+        <span class="spill sp-gold">TIA / Sapiens</span>
+        <span class="spill sp-gold">Insurance Domain</span>
+        <span class="spill sp-white">Credit Scoring</span>
+        <span class="spill sp-white">UNIX Shell</span>
+        <span class="spill sp-white">Ab Initio ETL</span>
+        <span class="spill sp-white">TOAD</span>
+        <span class="spill sp-white">SQL Developer</span>
+      </div>
+    </div>
+    <div class="skill-row">
+      <div class="skill-cat">
+        <div class="skill-cat-icon" style="background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.80);">+</div>
+        <span class="skill-cat-name">Bonus</span>
+      </div>
+      <div class="skill-pills">
+        <span class="spill sp-white">Python (certified)</span>
+        <span class="spill sp-white">C / C++</span>
+        <span class="spill sp-white">DB2</span>
+        <span class="spill sp-white">L2/L3 Support</span>
+        <span class="spill sp-white">Explaining SQL to non-techies</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- EXPERIENCE -->
+<div class="s" id="experience">
+  <div class="s-label">Career history</div>
+  <h2 class="s-title">Where I've been<br><em>— and what I survived</em></h2>
+
+  <div class="exp-grid">
+    <div class="exp-card c-break">
+      <div class="break-emoji">☕</div>
+      <div class="break-title">Career Break · Jun 2024 – Now</div>
+      <div class="break-sub">Took time to be present for early childcare. Zero regrets. Spent the time sharpening Oracle skills, writing PL/SQL content, and perfecting my chai-to-code ratio. Ready to jump back in — immediately.</div>
+    </div>
+
+    <div class="exp-card c-indigo">
+      <div class="exp-date">Jul 2022 – Jun 2024</div>
+      <div class="exp-role">TIA Developer</div>
+      <div class="exp-co indigo">Sapiens International · Old Mutual Insurance</div>
+      <ul class="exp-bullets">
+        <li>Resolved <strong>30+ P1 incidents</strong> — the "call Vasudha" era begins</li>
+        <li>Cut ticket backlog by <strong>45%</strong> by fixing roots, not symptoms</li>
+        <li>Built <strong>20+ PL/SQL packages</strong> for core insurance workflows in TIA</li>
+        <li>Batch runtime cut by <strong>28%</strong> via bulk processing & indexing</li>
+        <li>Monthly reporting <strong>40% faster</strong> with SQL & execution plan tuning</li>
+        <li>L2/L3 production support — stayed calm so others didn't have to</li>
+      </ul>
+      <div class="exp-stat-row">
+        <span class="exp-stat"><strong>Oracle 12c</strong></span>
+        <span class="exp-stat"><strong>PL/SQL</strong></span>
+        <span class="exp-stat"><strong>TIA</strong></span>
+        <span class="exp-stat"><strong>TOAD</strong></span>
+      </div>
+    </div>
+
+    <div class="exp-card c-coral">
+      <div class="exp-date">Sep 2018 – Jul 2022</div>
+      <div class="exp-role">Consultant – AXA Partners</div>
+      <div class="exp-co coral">Capgemini · Credit & Lifestyle Protection</div>
+      <ul class="exp-bullets">
+        <li>Migration scripts cut manual effort by <strong>65%</strong> — yes, 65. Verified.</li>
+        <li><strong>15+ critical DB objects</strong> across multi-country TIA platforms</li>
+        <li>Oracle Reports for regulatory & financial use across multiple regions</li>
+        <li>Modified legacy <strong>Forms & Reports</strong> for country-specific rules</li>
+        <li><strong>98% test coverage</strong> on financial modules (the 2% is a story)</li>
+        <li>Query optimisation brought execution time down by <strong>42%</strong></li>
+      </ul>
+      <div class="exp-stat-row">
+        <span class="exp-stat"><strong>Oracle Forms</strong></span>
+        <span class="exp-stat"><strong>Oracle Reports</strong></span>
+        <span class="exp-stat"><strong>PL/SQL</strong></span>
+      </div>
+    </div>
+
+    <div class="exp-card c-mint">
+      <div class="exp-date">Feb 2017 – Aug 2018</div>
+      <div class="exp-role">Software Associate</div>
+      <div class="exp-co mint">Capgemini · TransUnion (CMD)</div>
+      <ul class="exp-bullets">
+        <li>Built risk models for credit scoring — taught machines to judge finances</li>
+        <li>C/C++ pipelines for <strong>50,000+ daily credit report requests</strong></li>
+        <li>UNIX + Ab Initio ETL for Citigroup, Chase & Bank of America</li>
+        <li>My origin story. UNIX still doesn't scare me.</li>
+      </ul>
+      <div class="exp-stat-row">
+        <span class="exp-stat"><strong>C / C++</strong></span>
+        <span class="exp-stat"><strong>UNIX</strong></span>
+        <span class="exp-stat"><strong>Ab Initio</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERTS -->
+  <div class="s-label" style="margin-top:4rem;">Certifications</div>
+  <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.03em;margin-bottom:0.3rem;color:#fff;">Badges of honour</h3>
+  <div class="certs-row">
+    <div class="cert">
+      <div class="cert-badge" style="background:#fff7ed;color:#92400e;border:1.5px solid #fed7aa;">IBM<br>DB2</div>
+      <div>
+        <div class="cert-name">IBM Certified Database Associate – DB2 9 Fundamentals</div>
+        <div class="cert-meta">May 2017 · Still know it</div>
+      </div>
+    </div>
+    <div class="cert">
+      <div class="cert-badge" style="background:#eef2ff;color:#3730a3;border:1.5px solid #c7d2fe;">MS<br>Py</div>
+      <div>
+        <div class="cert-name">Microsoft 98-381 · Introduction to Programming Using Python</div>
+        <div class="cert-meta">Feb 2020 · Yes, I can Python too</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOG -->
+<div class="blog-bg" id="blog">
+<div class="s">
+  <div class="s-label">Oracle notes</div>
+  <h2 class="s-title">Things I wish someone<br><em>had told me earlier</em></h2>
+  <p style="font-size:0.95rem;color:rgba(255,255,255,0.78);font-weight:400;line-height:1.8;max-width:540px;margin-top:0.5rem;">Practical PL/SQL tips from real production systems. Not textbook stuff. Same content I post on LinkedIn — archived here so you don't have to scroll forever.</p>
+
+  <div class="posts">
+
+    <!-- HOW TO ADD A POST:
+    Copy a <a class="post"> block, paste before the draft card.
+    Set href to your LinkedIn article URL.
+    Change post-tag class: pt-indigo / pt-coral / pt-mint / pt-gold
+    -->
+
+    <a class="post" href="#" onclick="return false;">
+      <span class="post-tag pt-indigo">PL/SQL</span>
+      <div class="post-title">BULK COLLECT vs row-by-row: why your batch job is still running from last Tuesday</div>
+      <div class="post-blurb">The single most common performance crime I've seen in insurance systems — and the two-line fix that cuts runtime by 30%. If you're still doing row-by-row in 2025, we need to talk.</div>
+      <div class="post-foot">Coming soon</div>
+    </a>
+
+    <a class="post" href="#" onclick="return false;">
+      <span class="post-tag pt-coral">Performance</span>
+      <div class="post-title">Reading execution plans: 5 things I check in the first 60 seconds of a P1</div>
+      <div class="post-blurb">After 30+ production incidents, I have a checklist burned into my brain. Here's what I look at before anything else — and why FULL TABLE SCAN on 10M rows at 3am is everyone's problem.</div>
+      <div class="post-foot">Coming soon</div>
+    </a>
+
+    <a class="post" href="#" onclick="return false;">
+      <span class="post-tag pt-gold">TIA Platform</span>
+      <div class="post-title">TIA database patterns no one documents (but everyone Googles at midnight)</div>
+      <div class="post-blurb">Two years maintaining TIA for a South African insurer taught me things the official docs tactfully omit. My personal field guide to not repeating my mistakes.</div>
+      <div class="post-foot">Coming soon</div>
+    </a>
+
+    <a class="post" href="#" onclick="return false;">
+      <span class="post-tag pt-mint">Oracle Forms</span>
+      <div class="post-title">Oracle Forms isn't dead — it's just misunderstood (and underpaid)</div>
+      <div class="post-blurb">A love letter to the technology quietly running half the world's insurance backends while everyone obsesses over React. Plus: how to actually debug those session crashes.</div>
+      <div class="post-foot">Coming soon</div>
+    </a>
+
+    <div class="post post-draft">
+      <div class="draft-msg">Your next post lives here.<br>See the HTML comment above ↑</div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- CONTACT -->
+<div class="s" id="contact">
+  <div class="s-label">Get in touch</div>
+  <h2 class="s-title">Don't be<br><em>a stranger</em></h2>
+  <div class="contact-layout">
+    <p class="contact-bigtext">
+      Got an Oracle system that needs love? A TIA implementation crying for help? Or just want to debate the <em>correct</em> number of indexes on a table? My inbox is open.
+    </p>
+    <div class="contact-cards">
+      <a class="cc" href="mailto:vasudhadixit27@gmail.com">
+        <div class="cc-icon" style="background:#eef2ff;color:#4338ca;">@</div>
+        <div>
+          <div class="cc-lbl">Email (fastest)</div>
+          <div class="cc-val">vasudhadixit27@gmail.com</div>
+        </div>
+      </a>
+      <a class="cc" href="tel:+917276591588">
+        <div class="cc-icon" style="background:#fff4f0;color:#e8440a;">☎</div>
+        <div>
+          <div class="cc-lbl">Phone / WhatsApp</div>
+          <div class="cc-val">+91-7276591588</div>
+        </div>
+      </a>
+      <a class="cc" href="https://www.linkedin.com/in/vasudhadixit-database-developer/" target="_blank" rel="noopener">
+        <div class="cc-icon" style="background:#eef2ff;color:#4338ca;">in</div>
+        <div>
+          <div class="cc-lbl">LinkedIn</div>
+          <div class="cc-val">linkedin.com/in/vasudhadixit-database-developer</div>
+        </div>
+      </a>
+      <a class="cc" href="https://github.com/va5udha" target="_blank" rel="noopener">
+        <div class="cc-icon" style="background:#f0f9ff;color:#0369a1;">&lt;/&gt;</div>
+        <div>
+          <div class="cc-lbl">GitHub</div>
+          <div class="cc-val">github.com/va5udha</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">VD<span>.</span></div>
+  <div class="footer-links">
+    <a href="mailto:vasudhadixit27@gmail.com">Email</a>
+    <div class="footer-divider"></div>
+    <a href="https://www.linkedin.com/in/vasudhadixit-database-developer/" target="_blank">LinkedIn</a>
+    <div class="footer-divider"></div>
+    <a href="https://github.com/va5udha" target="_blank">GitHub</a>
+    <div class="footer-divider"></div>
+    <a href="tel:+917276591588">+91-7276591588</a>
+  </div>
+  <p class="footer-quip">
+    Oracle by day. Home chef by evening. Available immediately.
+    <span>No AI-generated buzzwords were used in the writing of this CV. Only real ones.</span>
+  </p>
+</footer>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX - 5 + 'px';
+  cursor.style.top = e.clientY - 5 + 'px';
+});
+document.addEventListener('mousedown', () => cursor.style.transform = 'scale(2.5)');
+document.addEventListener('mouseup', () => cursor.style.transform = 'scale(1)');
+</script>
+</body>
+</html>
