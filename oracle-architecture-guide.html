@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oracle Database Architecture: The Grand Tour · Vasudha Dixit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   GLOBAL RESET — prevents all overflow
+   ════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+html, body {
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+/* Constrain all major containers */
+.chapter-card,
+.arch-box,
+.nested-box,
+.analogy-box,
+.story-box,
+.tip-box,
+.checklist,
+.comp-card,
+.diagram-explain,
+.code-block,
+.big-picture,
+.blog-cta {
+  max-width: 100%;
+}
+/* Ensure grids don't overflow */
+.arch-grid {
+  min-width: 0;
+}
+.arch-grid > * {
+  min-width: 0;
+}
+/* Force images/media to scale */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+/* Tables should not force width */
+.chapter-card table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#16003a;
+  --ink2:#2d1260;
+  --ink3:#7c6fa0;
+  --bg:#0d0020;
+  --bg2:#130030;
+  --indigo:#a78bfa;
+  --indigo2:#c4b5fd;
+  --coral:#ff6b6b;
+  --coral2:#ff8e8e;
+  --mint:#2dd4bf;
+  --gold:#fbbf24;
+  --white:#ffffff;
+  --border:rgba(255,255,255,0.12);
+  --border2:rgba(255,255,255,0.06);
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Syne',sans-serif;
+  color:#f0eeff;
+  overflow-x:clip;
+  background:#0d0020;
+  line-height:1.7;
+}
+
+/* ── AURORA MESH BACKGROUND ── */
+.aurora-bg{
+  position:fixed;inset:0;z-index:-1;
+  background:#0d0020;
+  overflow:hidden;
+}
+.aurora-bg::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 5%,  rgba(236,72,153,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 65% 85%, rgba(6,182,212,0.45)  0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 10% 80%, rgba(16,185,129,0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 90% 50%, rgba(251,146,60,0.30) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 50%, rgba(167,139,250,0.20) 0%, transparent 60%);
+  animation:auroraShift 14s ease-in-out infinite alternate;
+}
+.aurora-bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 65% 55% at 75% 20%, rgba(99,102,241,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 25% 70%, rgba(244,114,182,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 45% 40% at 55% 40%, rgba(34,211,238,0.25) 0%, transparent 50%);
+  animation:auroraShift2 18s ease-in-out infinite alternate;
+}
+@keyframes auroraShift{
+  0%  {transform:translate(0,0) scale(1);}
+  33% {transform:translate(3%,2%) scale(1.04);}
+  66% {transform:translate(-2%,3%) scale(0.97);}
+  100%{transform:translate(2%,-2%) scale(1.03);}
+}
+@keyframes auroraShift2{
+  0%  {transform:translate(0,0) scale(1.02);}
+  50% {transform:translate(-3%,-2%) scale(0.96);}
+  100%{transform:translate(2%,3%) scale(1.05);}
+}
+.aurora-bg .grain{
+  position:absolute;inset:0;opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 3rem;height:64px;
+  background:rgba(8,0,20,0.82);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;
+  letter-spacing:-0.02em;color:#fff;text-decoration:none;
+  display:flex;align-items:center;gap:8px;
+}
+.logo-pill{
+  background:rgba(167,139,250,0.25);color:#e0d4ff;
+  border:1px solid rgba(167,139,250,0.4);
+  font-size:0.6rem;font-weight:700;letter-spacing:0.1em;
+  padding:3px 8px;border-radius:20px;text-transform:uppercase;
+}
+.nav-links{display:flex;align-items:center;gap:0.2rem;}
+.nav-links a{
+  font-size:0.78rem;font-weight:600;letter-spacing:0.04em;
+  color:rgba(255,255,255,0.75);text-decoration:none;padding:0.4rem 0.9rem;
+  border-radius:6px;transition:all 0.15s;text-transform:uppercase;
+}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,0.1);}
+.nav-cta{
+  background:rgba(167,139,250,0.22);color:#e0d4ff;
+  border:1px solid rgba(167,139,250,0.45);
+  font-size:0.78rem;font-weight:700;
+  padding:0.45rem 1.1rem;border-radius:6px;text-decoration:none;
+  letter-spacing:0.04em;text-transform:uppercase;transition:all 0.15s;
+}
+.nav-cta:hover{background:var(--indigo);color:#fff;border-color:var(--indigo);}
+
+/* ── BLOG HERO ── */
+.blog-hero{
+  min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;
+  padding:10rem 3rem 4rem;max-width:900px;margin:0 auto;
+  position:relative;
+}
+.blog-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.75);text-decoration:none;
+  margin-bottom:1.5rem;letter-spacing:0.04em;text-transform:uppercase;
+  transition:color 0.15s;
+}
+.blog-back:hover{color:#c4b5fd;}
+.blog-tag-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.blog-tag{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+  padding:0.28rem 0.7rem;border-radius:4px;border:1px solid;
+}
+.tag-indigo{background:rgba(124,58,237,0.3);border-color:rgba(167,139,250,0.5);color:#e0d4ff;}
+.tag-coral{background:rgba(220,38,38,0.25);border-color:rgba(255,107,107,0.45);color:#fecaca;}
+.tag-mint{background:rgba(5,150,105,0.25);border-color:rgba(45,212,191,0.4);color:#a7f3d0;}
+.tag-gold{background:rgba(180,130,0,0.25);border-color:rgba(251,191,36,0.4);color:#fef08a;}
+.blog-title{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(2rem,4.5vw,3.4rem);letter-spacing:-0.04em;
+  line-height:1.1;margin-bottom:1rem;color:#fff;
+  text-shadow:0 2px 20px rgba(0,0,0,0.5);
+}
+.blog-subtitle{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:clamp(1.1rem,2vw,1.5rem);color:rgba(255,255,255,0.85);
+  margin-bottom:1.5rem;
+}
+.blog-meta{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.75);letter-spacing:0.04em;
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+}
+.blog-meta span{display:flex;align-items:center;gap:6px;}
+
+/* ── CONTENT ── */
+.blog-content{
+  max-width:900px;margin:0 auto;padding:0 3rem 6rem;
+}
+
+/* Chapter cards */
+.chapter-card{
+  background:rgba(5,0,18,0.72);
+  overflow:hidden;
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:16px;padding:2.2rem 2.2rem 2rem;
+  margin-bottom:1.5rem;
+  position:relative;overflow:hidden;
+  transition:transform 0.2s,border-color 0.2s;
+  backdrop-filter:blur(16px);
+  box-sizing:border-box;
+}
+.chapter-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(167,139,250,0.35);
+}
+.chapter-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#7c3aed,#a78bfa);
+}
+.chapter-num{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.12em;
+  color:#c4b5fd;margin-bottom:0.6rem;
+}
+.chapter-title{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(1.3rem,2.5vw,1.7rem);letter-spacing:-0.03em;
+  color:#fff;margin-bottom:1.2rem;line-height:1.3;
+}
+.chapter-title .emoji{margin-right:0.4rem;}
+
+/* Text */
+.chapter-card p{
+  font-size:0.95rem;color:rgba(255,255,255,0.88);
+  line-height:1.85;margin-bottom:1rem;
+}
+.chapter-card strong{color:#fff;font-weight:700;}
+.chapter-card em{font-family:'Instrument Serif',serif;font-style:italic;color:#fbbf24;}
+.chapter-card code{
+  font-family:'JetBrains Mono',monospace;font-size:0.82rem;
+  background:rgba(255,255,255,0.1);padding:0.15rem 0.4rem;border-radius:4px;
+  color:#a7f3d0;
+}
+
+/* Flow steps */
+.flow-steps{
+  display:flex;flex-wrap:wrap;gap:0.6rem;justify-content:center;
+  margin:1.5rem 0;
+}
+.flow-step{
+  background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(167,139,250,0.4));
+  color:#fff;padding:0.7rem 1.2rem;border-radius:8px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;
+  text-align:center;box-shadow:0 2px 12px rgba(124,58,237,0.3);
+  position:relative;
+}
+.flow-step::after{
+  content:"→";position:absolute;right:-18px;top:50%;
+  transform:translateY(-50%);color:#c4b5fd;font-size:1.1rem;
+}
+.flow-step:last-child::after{content:none;}
+
+/* Architecture boxes inside chapters */
+.arch-box{
+  background:rgba(8,0,20,0.85);
+  border:1.5px solid rgba(167,139,250,0.35);
+  border-radius:12px;padding:1.5rem;margin:1.2rem 0;
+  position:relative;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.arch-box-title{
+  color:#c4b5fd;font-weight:700;font-size:1.05em;
+  margin-bottom:1rem;display:flex;align-items:center;gap:8px;
+  font-family:'Syne',sans-serif;
+}
+.arch-box-ram{border-color:rgba(45,212,191,0.45);}
+.arch-box-ram .arch-box-title{color:#6ee7b7;}
+.arch-box-disk{border-color:rgba(251,191,36,0.45);}
+.arch-box-disk .arch-box-title{color:#fde68a;}
+.arch-box-process{border-color:rgba(34,211,238,0.45);}
+.arch-box-process .arch-box-title{color:#67e8f9;}
+
+/* Grid layouts */
+.arch-grid{
+  display:grid;gap:1rem;margin:1rem 0;
+}
+.arch-grid-2{grid-template-columns:repeat(2,1fr);}
+.arch-grid-3{grid-template-columns:repeat(3,1fr);}
+.arch-grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:700px){
+  .arch-grid-2,.arch-grid-3,.arch-grid-4{grid-template-columns:1fr;}
+}
+
+/* Component cards */
+.comp-card{
+  background:rgba(255,255,255,0.06);
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:8px;padding:1rem;text-align:center;
+  transition:transform 0.2s,background 0.2s;
+  box-sizing:border-box;
+  max-width:100%;
+  word-break:break-word;
+  overflow-wrap:break-word;
+}
+.comp-card:hover{transform:translateY(-3px);background:rgba(255,255,255,0.1);}
+.comp-card .icon{font-size:1.6em;margin-bottom:0.4rem;}
+.comp-card .label{color:#fff;font-weight:600;font-size:0.9rem;}
+.comp-card .desc{color:rgba(255,255,255,0.7);font-size:0.78rem;margin-top:0.3rem;}
+
+/* Nested boxes */
+.nested-box{
+  background:rgba(255,255,255,0.04);
+  border:1px dashed rgba(255,255,255,0.15);
+  border-radius:8px;padding:1.2rem;margin:0.8rem 0;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.nested-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:0.8rem;font-weight:600;
+}
+
+/* Arrows */
+.arrow-down{text-align:center;color:#6ee7b7;font-size:1.4em;margin:0.6rem 0;}
+.connection-line{
+  height:2px;
+  background:linear-gradient(90deg,transparent,#6ee7b7,transparent);
+  margin:1rem 0;position:relative;
+}
+.connection-line::before{
+  content:"▼";position:absolute;left:50%;top:-8px;
+  transform:translateX(-50%);color:#6ee7b7;font-size:0.75em;
+}
+
+/* Story, Analogy, Tip, Checklist boxes — PORTFOLIO DARK THEME */
+.story-box,
+.analogy-box,
+.tip-box,
+.checklist{
+  border-radius:12px;padding:1.8rem 1.5rem 1.5rem;
+  margin:1.5rem 0;position:relative;
+  border:1.5px solid;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.story-box{
+  background:rgba(251,191,36,0.08);
+  border-color:rgba(251,191,36,0.35);
+}
+.analogy-box{
+  background:rgba(45,212,191,0.08);
+  border-color:rgba(45,212,191,0.35);
+}
+.tip-box{
+  background:rgba(34,211,238,0.08);
+  border-color:rgba(34,211,238,0.35);
+}
+.checklist{
+  background:rgba(167,139,250,0.08);
+  border-color:rgba(167,139,250,0.35);
+  padding:2rem;
+}
+
+/* Box labels */
+.story-box::before,
+.analogy-box::before,
+.tip-box::before{
+  position:absolute;top:-12px;left:12px;
+  padding:4px 12px;border-radius:20px;
+  font-weight:700;font-size:0.72rem;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.04em;text-transform:uppercase;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.story-box::before{
+  content:"🎬 SQL Story";
+  background:rgba(251,191,36,0.9);color:#1a1200;
+}
+.analogy-box::before{
+  content:"🎭 Analogy";
+  background:rgba(45,212,191,0.9);color:#022c22;
+}
+.tip-box::before{
+  content:"💡 Key Insight";
+  background:rgba(34,211,238,0.9);color:#082f49;
+}
+
+/* Box content */
+.story-box p,
+.analogy-box p,
+.tip-box p,
+.checklist p{
+  color:rgba(255,255,255,0.9);font-size:0.92rem;line-height:1.8;
+}
+.story-box strong{color:#fde68a;}
+.analogy-box strong{color:#6ee7b7;}
+.tip-box strong{color:#67e8f9;}
+.checklist strong{color:#c4b5fd;}
+
+.story-box ul,.story-box ol,
+.analogy-box ul,.analogy-box ol,
+.tip-box ul,.tip-box ol,
+.checklist ul,.checklist ol{
+  margin-left:1.2rem;margin-top:0.6rem;
+  color:rgba(255,255,255,0.85);font-size:0.9rem;line-height:1.8;
+}
+.story-box li,.analogy-box li,.tip-box li,.checklist li{margin-bottom:0.3rem;}
+
+/* Checklist items */
+.checklist h3{
+  color:#c4b5fd;margin-bottom:1.2rem;font-size:1.2rem;
+  font-family:'Syne',sans-serif;font-weight:700;
+}
+.checklist-item{
+  display:flex;align-items:flex-start;gap:1rem;
+  margin:0.8rem 0;padding:1rem;
+  background:rgba(255,255,255,0.06);
+  border-radius:10px;border:1px solid rgba(255,255,255,0.08);
+  transition:background 0.2s;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.checklist-item:hover{background:rgba(255,255,255,0.1);}
+.checklist-item .emoji{font-size:1.3em;min-width:28px;}
+.checklist-item .text{flex:1;}
+.checklist-item .text strong{
+  color:#fff;display:block;margin-bottom:0.3rem;font-size:0.95rem;
+}
+.checklist-item .text p{color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.6;}
+
+/* Tables */
+.chapter-card table{
+  width:100%;border-collapse:collapse;margin:1.2rem 0;
+  background:rgba(5,0,18,0.5);border-radius:10px;overflow:hidden;
+  border:1.5px solid rgba(255,255,255,0.12);
+  font-size:0.88rem;
+}
+.chapter-card th{
+  background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(167,139,250,0.4));
+  color:#fff;padding:0.9rem 1rem;text-align:left;font-weight:700;
+  font-family:'Syne',sans-serif;
+}
+.chapter-card td{
+  padding:0.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.85);
+}
+.chapter-card tr:last-child td{border-bottom:none;}
+.chapter-card tr:hover{background:rgba(255,255,255,0.04);}
+
+/* Code blocks */
+.code-block{
+  background:#0a0018;
+  color:#e0e0e0;padding:1.2rem 1.4rem;border-radius:10px;
+  overflow-x:auto;font-family:'JetBrains Mono',monospace;
+  margin:1rem 0;font-size:0.82rem;line-height:1.7;
+  border:1.5px solid rgba(255,255,255,0.12);
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.5);
+  box-sizing:border-box;
+  max-width:100%;
+}
+
+/* Process badges */
+.process-badge{
+  display:inline-block;
+  background:linear-gradient(135deg,rgba(34,211,238,0.4),rgba(59,130,246,0.4));
+  color:#fff;padding:0.35rem 0.8rem;border-radius:20px;
+  font-size:0.78rem;font-weight:700;margin:0.2rem;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* Highlight */
+.highlight{
+  background:linear-gradient(120deg,transparent 0%,rgba(251,191,36,0.25) 0%,rgba(251,191,36,0.25) 100%,transparent 100%);
+  background-size:100% 40%;background-position:0 90%;background-repeat:no-repeat;
+  padding:0 3px;font-weight:700;color:#fde68a;
+}
+
+/* Step flow */
+.step-flow{
+  display:flex;flex-wrap:wrap;gap:0.6rem;
+  margin:1.2rem 0;justify-content:center;align-items:center;
+}
+.step{
+  background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(167,139,250,0.4));
+  color:#fff;padding:0.7rem 1.1rem;border-radius:8px;
+  font-weight:700;text-align:center;min-width:90px;
+  font-size:0.85rem;font-family:'Syne',sans-serif;
+}
+.step-arrow{font-size:1.3em;color:#c4b5fd;}
+
+/* Big picture diagram */
+.big-picture{
+  background:rgba(5,0,18,0.85);
+  border:1.5px solid rgba(167,139,250,0.3);
+  border-radius:16px;padding:2rem;margin:1.5rem 0;
+  backdrop-filter:blur(12px);
+  box-sizing:border-box;
+  max-width:100%;
+}
+.big-picture .comp-card{border-color:rgba(255,255,255,0.15);}
+
+/* CTA at bottom */
+.blog-cta{
+  background:rgba(5,0,18,0.72);
+  border:1.5px solid rgba(167,139,250,0.3);
+  border-radius:16px;padding:2.5rem;text-align:center;
+  margin-top:3rem;backdrop-filter:blur(16px);
+}
+.blog-cta h3{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:1.4rem;color:#fff;margin-bottom:0.8rem;
+}
+.blog-cta p{
+  color:rgba(255,255,255,0.8);font-size:0.95rem;
+  margin-bottom:1.5rem;line-height:1.7;
+}
+.btn-main{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:#fff;text-decoration:none;
+  font-size:0.85rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  padding:0.9rem 1.8rem;border-radius:6px;transition:all 0.2s;
+  font-family:'Syne',sans-serif;
+  box-shadow:0 4px 24px rgba(124,58,237,0.5);
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.65);}
+
+/* ── FOOTER ── */
+footer{
+  background:rgba(4,0,14,0.9);
+  border-top:1px solid rgba(255,255,255,0.08);
+  padding:3rem;
+  display:flex;flex-direction:column;align-items:center;gap:1.2rem;
+  backdrop-filter:blur(20px);
+}
+.footer-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;
+  letter-spacing:-0.05em;color:#fff;
+}
+.footer-logo span{color:#ff8e8e;}
+.footer-links{display:flex;gap:0.3rem;flex-wrap:wrap;justify-content:center;}
+.footer-links a{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.88);text-decoration:none;padding:0.3rem 0.7rem;
+  border-radius:4px;transition:color 0.15s;text-transform:uppercase;letter-spacing:0.05em;
+}
+.footer-links a:hover{color:#c4b5fd;}
+.footer-divider{width:1px;height:14px;background:rgba(255,255,255,0.2);}
+.footer-quip{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:1rem;color:rgba(255,255,255,0.90);
+  text-align:center;line-height:1.7;
+}
+.footer-quip span{color:rgba(255,255,255,0.75);display:block;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-style:normal;margin-top:0.5rem;letter-spacing:0.04em;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  nav{padding:0 1.2rem;}
+  .nav-links{display:none;}
+  .blog-hero{padding:8rem 1.5rem 3rem;}
+  .blog-content{padding:0 1.5rem 4rem;}
+  .chapter-card{padding:1.5rem;}
+  .step-flow{flex-direction:column;}
+  .step-arrow{transform:rotate(90deg);}
+  .flow-step::after{content:none;}
+  .flow-steps{flex-direction:column;align-items:center;}
+  .flow-step::after{content:none;}
+}
+/* Diagram explanations */
+.diagram-explain{
+  background:rgba(167,139,250,0.08);
+  border-left:3px solid #c4b5fd;
+  border-radius:0 8px 8px 0;
+  padding:1rem 1.2rem;
+  margin:1.2rem 0;
+  color:rgba(255,255,255,0.88);
+  font-size:0.92rem;
+  line-height:1.8;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.diagram-explain::before{
+  content:"💡 What this diagram shows:";
+  display:block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.7rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:#c4b5fd;
+  margin-bottom:0.4rem;
+}
+.diagram-explain strong{color:#fff;}
+.diagram-explain em{font-family:'Instrument Serif',serif;font-style:italic;color:#fbbf24;}
+/* Fix width overflow for boxes inside chapter cards */
+.chapter-card .analogy-box,
+.chapter-card .story-box,
+.chapter-card .tip-box,
+.chapter-card .checklist,
+.chapter-card .diagram-explain{
+  max-width:100%;
+  box-sizing:border-box;
+}
+.chapter-card .analogy-box::before,
+.chapter-card .story-box::before,
+.chapter-card .tip-box::before{
+  left:12px;
+}
+/* Ensure nested boxes don't overflow */
+.chapter-card .nested-box{
+  max-width:100%;
+  box-sizing:border-box;
+}
+.chapter-card .arch-grid{
+  max-width:100%;
+}
+/* Prevent comp-cards from forcing width */
+.chapter-card .comp-card{
+  word-break:break-word;
+  overflow-wrap:break-word;
+}
+</style>
+</head>
+<body>
+
+<div class="aurora-bg"><div class="grain"></div></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    VD
+    <span class="logo-pill">Oracle Dev</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html#skills">Skills</a>
+    <a href="index.html#experience">Experience</a>
+    <a href="index.html#blog">Notes</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+  <a href="mailto:vasudhadixit27@gmail.com" class="nav-cta">Hire me →</a>
+</nav>
+
+<!-- BLOG HERO -->
+<section class="blog-hero">
+  <a href="index.html#blog" class="blog-back">← Back to notes</a>
+  <div class="blog-tag-row">
+    <span class="blog-tag tag-indigo">Oracle</span>
+    <span class="blog-tag tag-coral">Architecture</span>
+    <span class="blog-tag tag-mint">Beginner Friendly</span>
+  </div>
+  <h1 class="blog-title">Oracle Database Architecture</h1>
+  <p class="blog-subtitle">The Grand Tour — A humorous guide for new Oracle students</p>
+  <div class="blog-meta">
+    <span>📅 June 2025</span>
+    <span>⏱ 25 min read</span>
+    <span>🏷️ SGA · PGA · Background Processes · SQL Execution</span>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<div class="blog-content">
+
+<!-- CHAPTER 1 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 01</div>
+  <h2 class="chapter-title"><span class="emoji">🎬</span>Before We Talk Oracle, Let's Talk Software!</h2>
+  <p>Imagine you just bought a brand new laptop. It's shiny, it's fast, and it has that new-laptop smell. You decide to install your favorite game — let's call it <em>"Database Quest: The SQL Chronicles."</em></p>
+  <p>Here's what happens when you run ANY software on your computer:</p>
+  <div class="flow-steps">
+    <div class="flow-step">📦 Double-click</div>
+    <div class="flow-step">💾 Load to RAM</div>
+    <div class="flow-step">⚙️ Run Processes</div>
+    <div class="flow-step">🎮 Play!</div>
+  </div>
+  <p>Simple, right? Every software follows this pattern:</p>
+  <div class="arch-box arch-box-ram">
+    <div class="arch-box-title">🖥️ YOUR COMPUTER (Hardware)</div>
+    <div class="arch-grid arch-grid-2">
+      <div class="nested-box">
+        <div class="nested-label" style="color:#6ee7b7;">MEMORY (RAM)</div>
+        <div class="comp-card">
+          <div class="icon">🎮</div>
+          <div class="label">Game Program Loaded</div>
+          <div class="desc">Code + Data in RAM</div>
+        </div>
+      </div>
+      <div class="nested-box">
+        <div class="nested-label" style="color:#fde68a;">HARD DISK</div>
+        <div class="comp-card">
+          <div class="icon">💾</div>
+          <div class="label">Game Files</div>
+          <div class="desc">Saved games, configs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The big picture:</strong> Before diving into Oracle specifics, this shows how <em>any</em> software works. Your game (or Oracle) loads from disk into RAM, runs as processes, and interacts with both memory and storage. Oracle follows this exact same pattern — it just has specialized components for managing data instead of rendering graphics.
+  </div>
+  <p>Now, here's the kicker — <strong>ORACLE DATABASE</strong> is a sophisticated software system that follows the same fundamental principles as other applications, with specialized components optimized for data management.</p>
+</div>
+
+<!-- CHAPTER 2 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 02</div>
+  <h2 class="chapter-title"><span class="emoji">🏗️</span>Oracle Database = Instance + Database (The Dynamic Duo!)</h2>
+  <p>Oracle splits itself into two main parts — like Batman and Robin, but with more acronyms:</p>
+  <div class="arch-grid arch-grid-2">
+    <div class="arch-box arch-box-ram">
+      <div class="arch-box-title">🧠 THE INSTANCE (The Brain & Workers)</div>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ Lives in <strong style="color:#6ee7b7;">MEMORY (RAM)</strong></p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ Made of: Memory Structures (SGA) + Background Processes</p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ Think of it as the <em>"active, running"</em> part of Oracle</p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ When you <strong>START</strong> Oracle, you start the <strong>INSTANCE</strong></p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ When you <strong>SHUTDOWN</strong> Oracle, the INSTANCE disappears from memory</p>
+      <p style="margin-top:0.8rem;color:#fde68a;font-size:0.85rem;">💡 PGA belongs to server and background processes and is allocated outside the SGA. Each user connection gets its own PGA memory.</p>
+    </div>
+    <div class="arch-box arch-box-disk">
+      <div class="arch-box-title">💾 THE DATABASE (The Filing Cabinet)</div>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ Lives on <strong style="color:#fde68a;">DISK (Hard Drive)</strong></p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ Made of: Data Files, Control Files, Redo Log Files</p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ Think of it as the <em>"permanent storage"</em> part of Oracle</p>
+      <p style="color:rgba(255,255,255,0.8);font-size:0.9rem;">→ The database files <strong>STAY</strong> on disk even when Oracle is shut down</p>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The split:</strong> Oracle separates <em>volatile memory</em> (the Instance) from <em>persistent storage</em> (the Database). Think of the Instance as the "live brain" that thinks and works, while the Database is the "hard drive" that remembers everything permanently. When you shut down Oracle, the Instance vanishes from RAM but the Database files stay safely on disk.
+  </div>
+  <div class="connection-line"></div>
+  <div class="arch-box" style="border-color:rgba(255,107,107,0.4);">
+    <div class="arch-box-title" style="color:#fca5a5;">🏛️ ORACLE DATABASE SERVER</div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#6ee7b7;">ORACLE INSTANCE (In Memory)</div>
+      <div class="arch-grid arch-grid-2">
+        <div class="comp-card">
+          <div class="icon">🧠</div>
+          <div class="label">SGA</div>
+          <div class="desc">System Global Area</div>
+        </div>
+        <div class="comp-card">
+          <div class="icon">⚙️</div>
+          <div class="label">Background Processes</div>
+          <div class="desc">DBWn, LGWR, CKPT, SMON, PMON...</div>
+        </div>
+      </div>
+      <div class="arch-grid arch-grid-3" style="margin-top:0.8rem;">
+        <div class="comp-card" style="border-color:rgba(45,212,191,0.3);">
+          <div class="icon">📦</div>
+          <div class="label">Buffer Cache</div>
+        </div>
+        <div class="comp-card" style="border-color:rgba(45,212,191,0.3);">
+          <div class="icon">📝</div>
+          <div class="label">Redo Log Buffer</div>
+        </div>
+        <div class="comp-card" style="border-color:rgba(45,212,191,0.3);">
+          <div class="icon">📚</div>
+          <div class="label">Shared Pool</div>
+          <div class="desc">Library Cache + Data Dict Cache</div>
+        </div>
+      </div>
+    </div>
+    <div class="connection-line"></div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#fde68a;">ORACLE DATABASE (On Disk)</div>
+      <div class="arch-grid arch-grid-3">
+        <div class="comp-card" style="border-color:rgba(251,191,36,0.3);">
+          <div class="icon">📁</div>
+          <div class="label">Data Files</div>
+          <div class="desc">Your Data</div>
+        </div>
+        <div class="comp-card" style="border-color:rgba(251,191,36,0.3);">
+          <div class="icon">🎛️</div>
+          <div class="label">Control File</div>
+          <div class="desc">Metadata</div>
+        </div>
+        <div class="comp-card" style="border-color:rgba(251,191,36,0.3);">
+          <div class="icon">📋</div>
+          <div class="label">Redo Logs</div>
+          <div class="desc">Recovery</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>How they connect:</strong> This is the complete Oracle server. The <em>Instance</em> (top half) lives in RAM and contains the SGA (shared memory) plus background processes. The <em>Database</em> (bottom half) lives on disk with data files, control files, and redo logs. Background processes constantly shuttle data between these two worlds — reading from disk into memory, writing changes back, and keeping logs of everything.
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 THE DRAMATIC ANSWER TO "WHY DO WE NEED ARCHITECTURE?"</strong></p>
+    <p>Imagine running a restaurant without a kitchen (instance) — you have all the ingredients (database files) but no one to cook! Or imagine a kitchen without a pantry — you can cook but have nothing to serve! Oracle needs BOTH working together.</p>
+    <p>The <strong>INSTANCE</strong> is your kitchen staff cooking in real-time.<br>The <strong>DATABASE</strong> is your pantry storing everything permanently.</p>
+    <p>Without the architecture understanding, you're just a customer yelling <em>"WHERE'S MY FOOD?!"</em> at an empty building. 😅</p>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-top:1rem;">📌 NOTE: This guide assumes DEDICATED SERVER MODE (one server process per user). Oracle also supports SHARED SERVER MODE where multiple users share a pool of server processes. In shared server, part of the PGA moves to the SGA (Large Pool).</p>
+  </div>
+</div>
+
+<!-- CHAPTER 3 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 03</div>
+  <h2 class="chapter-title"><span class="emoji">🧠</span>SGA — The System Global Area (Oracle's Shared Brain)</h2>
+  <p>The SGA is like a <strong>SHARED WHITEBOARD</strong> in a classroom. Every student (process) can read from it and write to it. It's the <strong>COMMUNICATION HUB</strong> of Oracle.</p>
+  <div class="arch-box arch-box-ram">
+    <div class="arch-box-title">🧠 SGA (System Global Area) — Shared by ALL processes</div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#6ee7b7;">1. DATABASE BUFFER CACHE</div>
+      <div class="arch-grid arch-grid-4">
+        <div class="comp-card"><div class="label">Block 1</div><div class="desc">Data</div></div>
+        <div class="comp-card"><div class="label">Block 2</div><div class="desc">Data</div></div>
+        <div class="comp-card"><div class="label">Block 3</div><div class="desc">Data</div></div>
+        <div class="comp-card"><div class="label">Block N</div><div class="desc">Data</div></div>
+      </div>
+    </div>
+    <div class="diagram-explain">
+      <strong>Buffer Cache in action:</strong> When you query data, Oracle first checks if the block is already in memory. If yes — <em>logical read</em>, lightning fast. If no — <em>physical read</em> from disk, which is 10,000x slower. Once read, the block stays in cache so the next query hits memory. This is why "cache hit ratio" is a key performance metric.
+    </div>
+    <div class="story-box" style="margin:1rem 0;">
+      <p><strong>🎬 SQL Story:</strong> <code>SELECT * FROM employees;</code></p>
+      <p>→ Server process checks: <em>"Is this data in cache?"</em></p>
+      <p>→ If YES: <strong style="color:#6ee7b7;">"Yay! Fast response!"</strong> (Logical Read)</p>
+      <p>→ If NO: <em>"Ugh, gotta read from disk..."</em> (Physical)</p>
+      <p>→ Data is copied from <strong>DATA FILE → BUFFER CACHE</strong></p>
+      <p>→ Next time someone asks, it's already in memory!</p>
+    </div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#6ee7b7;">2. REDO LOG BUFFER</div>
+      <div class="arch-grid arch-grid-4">
+        <div class="comp-card" style="border-color:rgba(255,107,107,0.4);"><div class="label">Entry 1</div><div class="desc">INSERT</div></div>
+        <div class="comp-card" style="border-color:rgba(255,107,107,0.4);"><div class="label">Entry 2</div><div class="desc">UPDATE</div></div>
+        <div class="comp-card" style="border-color:rgba(255,107,107,0.4);"><div class="label">Entry 3</div><div class="desc">DELETE</div></div>
+        <div class="comp-card" style="border-color:rgba(255,107,107,0.4);"><div class="label">Entry N</div><div class="desc">DDL</div></div>
+      </div>
+      <div class="diagram-explain">
+        <strong>Shared Pool = Oracle's memory for metadata:</strong> The <em>Library Cache</em> stores parsed SQL and execution plans so Oracle doesn't re-parse the same query repeatedly. The <em>Data Dictionary Cache</em> caches table definitions, permissions, and constraints. Together they save massive CPU overhead — parsing SQL is expensive!
+      </div>
+      <div style="margin-top:1rem;">
+        <p><strong>🎬 SQL Story:</strong> <code>UPDATE employees SET salary=50000;</code></p>
+        <p>→ Before changing data, Oracle writes to <strong>REDO</strong></p>
+        <p>→ It's like a <strong>DIARY</strong>: <em>"Dear Diary, today I changed John's salary from 40000 to 50000..."</em></p>
+        <p>→ Why? In case of <strong>INSTANCE CRASH</strong> (power loss, process failure), Oracle replays changes to recover!</p>
+        <p>→ For <strong style="color:#fca5a5;">BUILDING FIRES</strong>, you need archived redo logs + off-site backups! 🔥</p>
+      </div>
+    </div>
+      <div class="diagram-explain">
+        <strong>Why redo matters:</strong> Every INSERT, UPDATE, DELETE gets logged here <em>before</em> the actual data changes. It's Oracle's "insurance policy." If the power goes out mid-transaction, SMON replays these logs on restart to recover committed changes. Without redo, your committed data would vanish into the void.
+      </div>
+      <div class="nested-box">
+      <div class="nested-label" style="color:#6ee7b7;">3. SHARED POOL</div>
+      <div class="arch-grid arch-grid-2">
+        <div class="comp-card">
+          <div class="icon">📚</div>
+          <div class="label">LIBRARY CACHE</div>
+          <div class="desc" style="text-align:left;margin-top:0.5rem;">
+            <p>SQL: <code>SELECT * FROM emp WHERE id=:b1</code></p>
+            <p>→ Parsed, Optimized, Execution Plan</p>
+            <p>SQL: <code>SELECT * FROM emp WHERE id=:b2</code></p>
+            <p>→ <strong style="color:#6ee7b7;">REUSES</strong> the same execution plan!</p>
+            <p style="color:#fca5a5;">⚠️ With literals (id=1, id=2) → TWO separate hard parses!</p>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="icon">📖</div>
+          <div class="label">DATA DICTIONARY CACHE</div>
+          <div class="desc" style="text-align:left;margin-top:0.5rem;">
+            <p>Table definitions, column types,</p>
+            <p>user permissions, constraints...</p>
+            <p><em>"What columns does EMPLOYEES have?"</em></p>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <p><strong>🎬 SQL Story:</strong> You run a query with a BIND variable</p>
+        <p>→ Oracle: <em>"Hmm, let me think about the best way to fetch this data..."</em> (Hard Parse = Expensive)</p>
+        <p>→ Second time (different value, same SQL text): <strong style="color:#6ee7b7;">"Oh! I remember this query!"</strong> (Soft Parse!)</p>
+        <p>→ (Soft Parse = Fast & Cheap!)</p>
+        <p>→ The execution plan is cached in Library Cache!</p>
+        <p style="color:#fca5a5;">⚠️ WARNING: SELECT ... WHERE id=1 and id=2 are treated as DIFFERENT statements (literal SQL)!</p>
+      </div>
+    </div>
+    <div class="arch-grid arch-grid-2" style="margin-top:1.2rem;">
+      <div class="comp-card">
+        <div class="icon">🎯</div>
+        <div class="label">4. RESULT CACHE (11g+)</div>
+        <div class="desc">Stores query results for identical queries</div>
+      </div>
+      <div class="comp-card">
+        <div class="icon">📦</div>
+        <div class="label">5. LARGE POOL</div>
+        <div class="desc">RMAN backups, parallel queries, Shared Server UGA</div>
+      </div>
+      <div class="comp-card">
+        <div class="icon">☕</div>
+        <div class="label">6. JAVA POOL</div>
+        <div class="desc">For running Java code inside Oracle. Yes, really. 😄</div>
+      </div>
+      <div class="comp-card">
+        <div class="icon">🌊</div>
+        <div class="label">7. STREAMS POOL</div>
+        <div class="desc">Legacy Streams (superseded by GoldenGate)</div>
+      </div>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The other SGA pools:</strong> <em>Result Cache</em> stores actual query results (not just plans) for identical queries. <em>Large Pool</em> handles RMAN backups and parallel queries. <em>Java Pool</em> runs Java inside Oracle (yes, really). <em>Streams Pool</em> is legacy replication. Most day-to-day work happens in Buffer Cache + Shared Pool, but these matter for specialized workloads.
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 FUNNY ANALOGY:</strong></p>
+    <p>Think of SGA as a <strong>SHARED OFFICE KITCHEN</strong>:</p>
+    <ul>
+      <li>Buffer Cache = The fridge (everyone grabs food from here)</li>
+      <li>Redo Log Buffer = The security camera (records everything that happens)</li>
+      <li>Shared Pool = The recipe book (so you don't have to figure out how to make coffee every morning)</li>
+      <li>Large Pool = The catering table (for when you have a BIG meeting)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- CHAPTER 4 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 04</div>
+  <h2 class="chapter-title"><span class="emoji">👤</span>PGA — Program Global Area (Your Private Desk)</h2>
+  <p>If SGA is the <strong>SHARED OFFICE KITCHEN</strong>, then PGA is <strong>YOUR PRIVATE DESK</strong>. Only YOU can access it. No sharing allowed! 🚫</p>
+  <div class="arch-box arch-box-process">
+    <div class="arch-box-title">👤 PGA (Program Global Area) — Private to EACH server process</div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#67e8f9;">SESSION MEMORY</div>
+      <p>→ Your login info, session variables, NLS settings</p>
+      <p>→ <em>"Hi, I'm John, I like dates in DD-MON-YYYY format"</em></p>
+    </div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#67e8f9;">PRIVATE SQL AREA</div>
+      <div class="comp-card" style="text-align:left;">
+        <div class="label">Cursor: <code>SELECT * FROM employees WHERE dept=10</code></div>
+        <div style="color:rgba(255,255,255,0.7);margin-top:0.5rem;">
+          <p>Bind Variables: dept = 10</p>
+          <p>Runtime Memory: Sort area, Hash area</p>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <p><strong>🎬 SQL Story:</strong> You open a cursor in PL/SQL:</p>
+        <div class="code-block">
+DECLARE<br>
+&nbsp;&nbsp;CURSOR c_emp IS SELECT * FROM employees;<br>
+BEGIN<br>
+&nbsp;&nbsp;OPEN c_emp;  ← Memory allocated in PGA!<br>
+&nbsp;&nbsp;FETCH c_emp INTO ...;<br>
+&nbsp;&nbsp;CLOSE c_emp;  ← Memory freed!<br>
+END;
+        </div>
+      </div>
+    </div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#67e8f9;">SORT AREA</div>
+      <p>→ For ORDER BY, GROUP BY, JOIN operations</p>
+      <p>→ If sort is too big for memory → spills to TEMP</p>
+      <p><strong>🎬 SQL Story:</strong> <code>SELECT * FROM employees ORDER BY salary</code></p>
+      <p>→ Oracle: <em>"Let me sort these 1 million rows..."</em></p>
+      <p>→ If PGA sort area is 1MB: <strong style="color:#6ee7b7;">"This fits!" ✅</strong></p>
+      <p>→ If it needs 100MB: <em>"Oops, writing to temp file"</em></p>
+    </div>
+    <div class="nested-box">
+      <div class="nested-label" style="color:#67e8f9;">HASH AREA / BITMAP MERGE AREA</div>
+      <p>→ For hash joins and bitmap index operations</p>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>PGA = Your private workspace:</strong> Unlike the SGA which is shared by everyone, the PGA is <em>yours alone</em>. It holds your session settings, private cursors, sort areas, and hash work areas. When you disconnect, this memory is freed. If your sort is too big for PGA, it spills to TEMP tablespace on disk — that's when queries slow down dramatically.
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 THE PGA CAFETERIA ANALOGY:</strong></p>
+    <ul>
+      <li>SGA = The shared buffet table (everyone eats from here)</li>
+      <li>PGA = Your personal tray (only you eat from YOUR tray)</li>
+      <li>When you sit down to eat (execute SQL), you put food on YOUR tray</li>
+      <li>When you leave (disconnect), your tray is cleaned and reused</li>
+    </ul>
+  </div>
+  <div class="tip-box">
+    <p><strong>💡 KEY DIFFERENCE:</strong></p>
+    <table>
+      <tr>
+        <th>Feature</th>
+        <th>SGA</th>
+        <th>PGA</th>
+      </tr>
+      <tr>
+        <td><strong>Shared?</strong></td>
+        <td>YES (all processes)</td>
+        <td>NO (one server process)</td>
+      </tr>
+      <tr>
+        <td><strong>Lives where?</strong></td>
+        <td>Instance memory</td>
+        <td>Per server process</td>
+      </tr>
+      <tr>
+        <td><strong>Stores what?</strong></td>
+        <td>Data blocks, SQL plans</td>
+        <td>Session info, cursors</td>
+      </tr>
+      <tr>
+        <td><strong>Size controlled</strong></td>
+        <td>SGA_TARGET parameter</td>
+        <td>PGA_AGGREGATE_TARGET</td>
+      </tr>
+      <tr>
+        <td><strong>Survives crash?</strong></td>
+        <td>NO (memory is lost)</td>
+        <td>NO (memory is lost)</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- CHAPTER 5 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 05</div>
+  <h2 class="chapter-title"><span class="emoji">⚙️</span>Background Processes — Oracle's Unsung Heroes</h2>
+  <p>Background processes are like the janitors, security guards, and accountants of Oracle. They work behind the scenes so you can focus on writing terrible SQL. 😄</p>
+  <div class="arch-box" style="border-color:rgba(255,107,107,0.4);">
+    <div class="arch-box-title" style="color:#fca5a5;">⚙️ MANDATORY BACKGROUND PROCESSES</div>
+    <p style="color:#fca5a5;font-size:0.85rem;margin-bottom:1rem;">Oracle won't start without these!</p>
+    <div class="arch-grid arch-grid-2">
+      <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+        <div class="nested-label" style="color:#6ee7b7;">🧹 SMON — System Monitor</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Janitor / Recovery Specialist"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Performs <strong>INSTANCE RECOVERY</strong> after crash</li>
+          <li>Cleans up temporary segments</li>
+          <li>Coalesces free space in tablespaces</li>
+          <li>Recovers dead transactions in RAC</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> Your database crashed at 2 AM!</p>
+          <p>→ SMON wakes up: <strong style="color:#6ee7b7;">"Don't panic! I got this!"</strong></p>
+          <p>→ Reads redo logs, replays changes, fixes everything</p>
+          <p>→ Instance recovery complete. Back to sleep. 😴</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(34,211,238,0.3);">
+        <div class="nested-label" style="color:#67e8f9;">👮 PMON — Process Monitor</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Bouncer / Cleanup Crew"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Monitors user processes</li>
+          <li>Cleans up after <strong>CRASHED</strong> or <strong>KILLED</strong> sessions</li>
+          <li>Releases locks and resources</li>
+          <li>Participates in service registration activities</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> Your SQL*Plus session froze...</p>
+          <p>→ You kill it with Ctrl+C in frustration</p>
+          <p>→ PMON: <em>"I see dead processes..."</em> 👻</p>
+          <p>→ Cleans up the mess, releases locks</p>
+          <p>→ Other users: <strong>"Thank you, PMON!"</strong></p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+        <div class="nested-label" style="color:#fde68a;">📝 DBWn — Database Writer</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Data Mover / Heavy Lifter"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Writes <strong>DIRTY</strong> buffers from Buffer Cache to Datafiles</li>
+          <li>Triggered by: checkpoint, buffer cache full, etc</li>
+          <li>Can use multiple DBWn processes depending on workload</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> You UPDATE 1000 rows...</p>
+          <p>→ Data changes in <strong>BUFFER CACHE</strong> (fast memory)</p>
+          <p>→ DBWn: <em>"I'll write these to disk... eventually"</em></p>
+          <p>→ Why eventually? Because disk is <strong>SLOW!</strong></p>
+          <p>→ DBWn writes in batches when needed</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(255,107,107,0.3);">
+        <div class="nested-label" style="color:#fca5a5;">✍️ LGWR — Log Writer</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Scribe / Diary Keeper"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Writes <strong>REDO</strong> entries from Redo Log Buffer to disk</li>
+          <li>Triggered by: COMMIT, buffer thresholds (1/3 full or 1 MB), DBWR signals</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> You COMMIT your transaction...</p>
+          <p>→ You: <em>"Please save my changes!"</em></p>
+          <p>→ LGWR: <strong style="color:#6ee7b7;">"Writing to redo log... DONE!" ⚡</strong></p>
+          <p>→ You: <strong>"Great! My changes are safe!"</strong></p>
+          <p>→ (DBWn writes to datafiles later, lazily)</p>
+        </div>
+        <div class="tip-box" style="margin-top:0.8rem;background:rgba(34,211,238,0.06);">
+          <p><strong style="color:#67e8f9;">💡 WHY LGWR is faster than DBWn:</strong></p>
+          <p>LGWR writes <strong>SEQUENTIALLY</strong> (like writing a diary)</p>
+          <p>DBWn writes <strong>RANDOMLY</strong> (like filing scattered papers)</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(156,39,176,0.3);">
+        <div class="nested-label" style="color:#d8b4fe;">🎯 CKPT — Checkpoint Process</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Timekeeper / Synchronization Boss"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Signals DBWn to write dirty buffers to disk</li>
+          <li>Updates control files and datafile headers</li>
+          <li>Records the <strong>SCN</strong> (System Change Number)</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> During checkpoints (including log switches)</p>
+          <p>→ CKPT: <strong>"Hey DBWn! Write those dirty buffers now!"</strong></p>
+          <p>→ Updates files: <em>"As of SCN 12345, we're good"</em></p>
+          <p>→ This is how Oracle knows what to recover!</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+        <div class="nested-label" style="color:#6ee7b7;">🔧 MMON / MMNL — Manageability Monitors</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>MANDATORY in 10g+</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Gathers performance stats for <strong>AWR</strong> (Automatic Workload Repository)</li>
+          <li>Takes snapshots every hour</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><em>"I'm watching your SQL performance..."</em> 👁️</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The essential crew:</strong> These 5+ processes are <em>non-negotiable</em> — Oracle refuses to start without them. <strong>SMON</strong> is your crash-recovery hero. <strong>PMON</strong> cleans up dead sessions. <strong>DBWn</strong> lazily writes dirty buffers to disk. <strong>LGWR</strong> urgently writes redo logs. <strong>CKPT</strong> coordinates checkpoints. <strong>MMON</strong> gathers AWR stats. Each has one job and does it relentlessly.
+  </div>
+  <div class="arch-box" style="border-color:rgba(251,191,36,0.4);margin-top:1.2rem;">
+    <div class="arch-box-title" style="color:#fde68a;">📦 OPTIONAL BUT IMPORTANT PROCESSES</div>
+    <div class="arch-grid arch-grid-2">
+      <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+        <div class="nested-label" style="color:#fde68a;">📦 ARCn — Archiver Process</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><strong>ESSENTIAL for production</strong></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Copies filled redo logs to archive location</li>
+          <li>Required in <strong>ARCHIVELOG</strong> mode (standard for production)</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p>Redo log is full! <em>"Don't overwrite me!"</em></p>
+          <p>→ ARCn: <strong>"I'll make a backup copy first!"</strong></p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(34,211,238,0.3);">
+        <div class="nested-label" style="color:#67e8f9;">🔄 RECO — Recoverer Process</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Resolves distributed transaction issues</li>
+          <li>For databases talking to each other</li>
+        </ul>
+</div>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>Optional but critical:</strong> <strong>ARCn</strong> copies filled redo logs before they get overwritten — essential for point-in-time recovery. Without it, you can only recover to the last backup. <strong>RECO</strong> handles distributed transactions across multiple databases. In production, you absolutely need ARCn running in ARCHIVELOG mode.
+  </div>
+</div>
+
+<!-- CHAPTER 6 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 06</div>
+  <h2 class="chapter-title"><span class="emoji">💾</span>Database Files — Where Data Sleeps at Night</h2>
+  <p>When Oracle goes to sleep (shutdown), all the data lives here. These are the <strong>PERMANENT</strong> files.</p>
+  <div class="arch-box arch-box-disk">
+    <div class="arch-box-title">💾 DATABASE FILES (On Disk)</div>
+    <div class="arch-grid arch-grid-2">
+      <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+        <div class="nested-label" style="color:#fde68a;">📁 DATA FILES (*.dbf)</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Filing Cabinets"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Store <strong>ALL</strong> your actual data (tables, indexes)</li>
+          <li>Belong to <strong>TABLESPACES</strong> (logical containers)</li>
+          <li>SYSTEM, SYSAUX, UNDO, TEMP, USER tablespaces</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> <code>CREATE TABLE employees (...);</code></p>
+          <p>→ Oracle: <strong>"I'll store this in a data file!"</strong></p>
+          <p>→ Data file grows as you insert more rows</p>
+          <p>→ Each tablespace can have multiple data files</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+        <div class="nested-label" style="color:#6ee7b7;">🎛️ CONTROL FILES (*.ctl)</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Database ID Card / Blueprint"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li><strong>SMALL</strong> but <strong>CRITICAL</strong> file</li>
+          <li>Contains: Database name, data file locations, redo log locations, SCN, checkpoint info</li>
+          <li>Oracle <strong>NEEDS</strong> this to mount the database</li>
+          <li>You should have <strong>MULTIPLE</strong> copies (multiplexed)</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> <code>STARTUP MOUNT;</code></p>
+          <p>→ Oracle reads control file</p>
+          <p>→ <em>"Ah, I see we have 3 data files and 2 redo logs"</em></p>
+          <p>→ Database is <strong>MOUNTED</strong> but not open yet</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(255,107,107,0.3);">
+        <div class="nested-label" style="color:#fca5a5;">📝 REDO LOG FILES (*.log)</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Security Camera Tapes"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li>Record <strong>EVERY</strong> change made to the database</li>
+          <li>Used for <strong>RECOVERY</strong> if database crashes</li>
+          <li>Minimum 3 groups recommended (2 absolute minimum), each with 1+ members</li>
+          <li>Circular: When full, LGWR switches to next group</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> You UPDATE a row and COMMIT</p>
+          <p>→ Change written to <strong>REDO LOG</strong> first</p>
+          <p>→ If power fails, SMON uses redo to recover</p>
+          <p>→ <em>"Replay the tape to see what happened!"</em> 📼</p>
+        </div>
+      </div>
+      <div class="nested-box" style="border-color:rgba(34,211,238,0.3);">
+        <div class="nested-label" style="color:#67e8f9;">📋 PARAMETER FILE (PFILE/SPFILE)</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Configuration Settings"</em></p>
+        <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+          <li><strong>PFILE</strong> (initSID.ora) = Text file, editable</li>
+          <li><strong>SPFILE</strong> (spfileSID.ora) = Binary, managed by Oracle</li>
+          <li>Contains: SGA size, process count, db name, etc</li>
+        </ul>
+        <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+          <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> <code>STARTUP</code></p>
+          <p>→ Oracle reads SPFILE: <code>"SGA_TARGET=2G, PROCESSES=150"</code></p>
+          <p>→ Allocates memory accordingly</p>
+        </div>
+      </div>
+    </div>
+    <div class="nested-box" style="margin-top:1.2rem;border-color:rgba(156,39,176,0.3);">
+      <div class="nested-label" style="color:#d8b4fe;">🗑️ UNDO TABLESPACE / Undo Data</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"The Time Machine / Undo Button"</em></p>
+      <ul style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.88rem;">
+        <li>Stores <strong>BEFORE</strong> images of changed data for read consistency</li>
+        <li>Used for: <strong>ROLLBACK</strong>, <strong>READ CONSISTENCY</strong> (consistent reads), flashback</li>
+      </ul>
+      <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+        <p><strong style="color:#fde68a;">🎬 SQL Story:</strong> You DELETE all employees by mistake!</p>
+        <p>→ You: <strong style="color:#fca5a5;">"OH NO! UNDO! UNDO!"</strong></p>
+        <p>→ <code>ROLLBACK</code> uses undo data to restore everything</p>
+        <p>→ Crisis averted! You keep your job! 🎉</p>
+      </div>
+</div>
+  </div>
+  <div class="diagram-explain">
+    <strong>Where data sleeps:</strong> These files are <em>permanent</em> — they survive shutdowns, crashes, and reboots. <strong>Data files</strong> hold your tables and indexes. <strong>Control files</strong> are the "ID card" Oracle reads first at startup. <strong>Redo logs</strong> record every change for recovery. <strong>Undo</strong> lets you roll back mistakes. Lose any of these without backups, and you're in serious trouble.
+  </div>
+</div>
+
+<!-- CHAPTER 7 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 07</div>
+  <h2 class="chapter-title"><span class="emoji">🚀</span>The Epic Journey of a SQL Statement</h2>
+  <p>Let's follow a SQL statement from birth to execution. This is where <strong>ALL</strong> the architecture components come together in a beautiful (and complex) dance!</p>
+  <div class="arch-box" style="border-color:rgba(124,58,237,0.4);">
+    <div class="arch-box-title" style="color:#c4b5fd;">🚀 THE JOURNEY OF: <code>SELECT * FROM employees WHERE id = 101</code></div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 1: YOU type the SQL (User Process)</div>
+      <div class="comp-card" style="max-width:350px;margin:0 auto;">
+        <div class="icon">👤</div>
+        <div class="label">You (at SQL*Plus/SQL Developer)</div>
+        <div class="code-block" style="margin-top:0.6rem;text-align:left;font-size:0.75rem;">
+SQL&gt; SELECT * FROM employees WHERE id=101;
+        </div>
+      </div>
+      <div class="arrow-down">⬇️</div>
+      <div style="text-align:center;color:rgba(255,255,255,0.6);font-size:0.85rem;">Sends SQL over network to Oracle Server</div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 2: Listener receives connection</div>
+      <div class="comp-card" style="max-width:350px;margin:0 auto;">
+        <div class="icon">👂</div>
+        <div class="label">Listener Process (tnslsnr)</div>
+        <div style="margin-top:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem;"><em>"Hey! Someone wants to talk to Oracle!"</em></div>
+        <div style="margin-top:0.5rem;color:#6ee7b7;font-size:0.85rem;">→ Creates/assigns a SERVER PROCESS for you</div>
+      </div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 3: Server Process takes over</div>
+      <div class="comp-card" style="max-width:350px;margin:0 auto;">
+        <div class="icon">🤵</div>
+        <div class="label">Server Process (dedicated to YOU)</div>
+      </div>
+      <div class="arch-box arch-box-process" style="margin-top:0.8rem;">
+        <div class="arch-box-title" style="font-size:0.85rem;">PGA allocated for your session</div>
+        <div class="arch-grid arch-grid-3">
+          <div class="comp-card" style="font-size:0.8rem;"><div class="label">Session info</div></div>
+          <div class="comp-card" style="font-size:0.8rem;"><div class="label">Private SQL area (cursor)</div></div>
+          <div class="comp-card" style="font-size:0.8rem;"><div class="label">Sort area</div></div>
+        </div>
+      </div>
+      <div style="text-align:center;color:rgba(255,255,255,0.6);margin-top:0.8rem;font-size:0.85rem;">→ Checks: <em>"Do I know this SQL already?"</em></div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 4: Parse Phase (Shared Pool)</div>
+      <div class="arch-box arch-box-ram" style="margin-bottom:0.8rem;">
+        <div class="arch-box-title" style="font-size:0.85rem;">SGA → Shared Pool → Library Cache</div>
+      </div>
+      <div class="arch-grid arch-grid-2">
+        <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+          <div class="nested-label" style="color:#6ee7b7;">CASE A: SQL found in cache (SOFT PARSE)</div>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><strong style="color:#6ee7b7;">"Aha! I know this query!"</strong></p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">Execution plan: <strong>INDEX UNIQUE SCAN</strong> on PK</p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">Cost: <strong>1</strong></p>
+          <p style="margin-top:0.5rem;color:#6ee7b7;font-size:0.9rem;">→ FAST! Reuse existing plan!</p>
+        </div>
+        <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+          <div class="nested-label" style="color:#fde68a;">CASE B: SQL NOT found (HARD PARSE)</div>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"Hmm, never seen this before..."</em></p>
+          <ol style="margin-left:1.2rem;margin-top:0.5rem;color:rgba(255,255,255,0.8);font-size:0.85rem;">
+            <li>Syntax check</li>
+            <li>Semantic check (Data Dictionary Cache)</li>
+            <li>Security check: <em>"Do you have SELECT privilege?"</em></li>
+            <li>Optimization: <em>"What's the BEST plan?"</em></li>
+            <li>Row Source Generation</li>
+            <li>Store plan in Library Cache</li>
+          </ol>
+          <p style="margin-top:0.5rem;color:#fde68a;font-size:0.9rem;">→ SLOW! But next time will be fast!</p>
+        </div>
+      </div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 5: Execute Phase (Buffer Cache)</div>
+      <div class="arch-box arch-box-ram" style="margin-bottom:0.8rem;">
+        <div class="arch-box-title" style="font-size:0.85rem;">SGA → Database Buffer Cache</div>
+        <div style="text-align:center;color:rgba(255,255,255,0.6);margin:0.6rem 0;font-size:0.85rem;"><em>"Where is employee 101's data block?"</em></div>
+      </div>
+      <div class="arch-grid arch-grid-2">
+        <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+          <div class="nested-label" style="color:#6ee7b7;">CASE A: Block in Buffer Cache (CACHE HIT)</div>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">Block found in memory!</p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Read data directly from buffer cache</p>
+          <p style="color:#6ee7b7;font-size:1.1rem;">→ LIGHTNING FAST! ⚡</p>
+        </div>
+        <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+          <div class="nested-label" style="color:#fde68a;">CASE B: Block NOT in cache (CACHE MISS)</div>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">Block not in memory...</p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Read block from <strong>DATA FILE</strong> on disk</p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Copy block into <strong>BUFFER CACHE</strong></p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Now it's cached for next time!</p>
+          <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Slower, but improves future queries</p>
+        </div>
+      </div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 6: Return Results</div>
+      <div class="comp-card" style="max-width:350px;margin:0 auto;">
+        <div class="icon">📊</div>
+        <div class="label">Server Process formats result set</div>
+        <div style="margin-top:0.5rem;color:rgba(255,255,255,0.7);font-size:0.8rem;">Sends back to your SQL*Plus screen</div>
+      </div>
+      <div class="code-block" style="margin-top:1rem;max-width:350px;margin-left:auto;margin-right:auto;font-size:0.78rem;">
+  ID  NAME    DEPT  SALARY<br>
+  --- ------  ----  ------<br>
+  101 John    IT    50000
+      </div>
+      <div style="text-align:center;color:#6ee7b7;margin-top:0.8rem;font-size:0.95rem;">→ <strong>"Yay! My query worked!"</strong> 🎉</div>
+</div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The full SELECT journey:</strong> This traces a query from your fingers to the result screen. The <em>Listener</em> accepts your connection and spawns a <em>Server Process</em> just for you. Your SQL is <em>parsed</em> (checked syntax, optimized, planned), then <em>executed</em> (data fetched from Buffer Cache or disk), and finally <em>returned</em> formatted. Every step uses different memory structures — SGA for shared stuff, PGA for your private workspace.
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 THE RESTAURANT ANALOGY FOR SQL EXECUTION:</strong></p>
+    <ul>
+      <li>You (Customer) = User Process</li>
+      <li>Waiter = Server Process</li>
+      <li>Kitchen (Shared) = SGA</li>
+      <li>Your Table = PGA</li>
+      <li>Pantry (Storage) = Database Files</li>
+    </ul>
+    <ol style="margin-top:0.8rem;">
+      <li>You order food (type SQL)</li>
+      <li>Waiter takes order (server process parses)</li>
+      <li>Waiter checks recipe book (Library Cache)</li>
+      <li>Chef checks fridge (Buffer Cache) — if ingredients there, fast!</li>
+      <li>If not, chef gets from pantry (data files) — slower</li>
+      <li>Food cooked and served (results returned)</li>
+      <li>Security camera records order (Redo Log Buffer)</li>
+      <li>Accountant writes to ledger (LGWR writes redo)</li>
+      <li>Janitor cleans up later (DBWn writes to data files)</li>
+    </ol>
+  </div>
+</div>
+
+<!-- CHAPTER 8 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 08</div>
+  <h2 class="chapter-title"><span class="emoji">✏️</span>What Happens When You MODIFY Data? (The Drama!)</h2>
+  <p><strong>SELECT</strong> is easy. But <strong>INSERT, UPDATE, DELETE</strong>? That's where the <strong>REAL</strong> architecture party happens!</p>
+  <div class="arch-box" style="border-color:rgba(255,107,107,0.4);">
+    <div class="arch-box-title" style="color:#fca5a5;">✏️ THE JOURNEY OF: <code>UPDATE employees SET salary = 60000 WHERE id = 101;</code></div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 1: Parse (same as SELECT)</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Check Library Cache, Data Dictionary Cache</p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 2: Read Data Block into Buffer Cache</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ If not in cache, read from data file</p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(156,39,176,0.3);">
+      <div class="nested-label" style="color:#d8b4fe;">STEP 3: Create UNDO (Before Image)</div>
+      <div class="arch-box" style="border-color:#d8b4fe;margin-top:0.8rem;">
+        <div class="arch-box-title" style="font-size:0.85rem;color:#d8b4fe;">UNDO TABLESPACE / Undo Segment</div>
+        <div class="comp-card" style="max-width:280px;margin:0.8rem auto;">
+          <div style="color:#fca5a5;"><strong>BEFORE:</strong> salary = 50000</div>
+          <div style="color:#6ee7b7;margin-top:0.3rem;"><strong>AFTER:</strong> salary = 60000 (not written yet)</div>
+        </div>
+      </div>
+      <div style="text-align:center;color:rgba(255,255,255,0.6);margin-top:0.8rem;font-size:0.85rem;">→ <em>"Just in case you want to ROLLBACK!"</em></div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+      <div class="nested-label" style="color:#6ee7b7;">STEP 4: Modify Data in Buffer Cache</div>
+      <div class="arch-box arch-box-ram" style="margin-top:0.8rem;">
+        <div class="arch-box-title" style="font-size:0.85rem;">Buffer Cache Block (now DIRTY/Modified)</div>
+        <div class="comp-card" style="max-width:280px;margin:0.8rem auto;border-color:#fca5a5;">
+          <div style="color:#fca5a5;"><strong>Employee 101: salary = 60000 (CHANGED!)</strong></div>
+          <div style="color:#fde68a;margin-top:0.3rem;">Status: DIRTY (not yet written to disk)</div>
+        </div>
+      </div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Block is marked as <strong style="color:#fca5a5;">DIRTY</strong></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ DBWn will write it to disk <strong>LATER</strong></p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(255,107,107,0.3);">
+      <div class="nested-label" style="color:#fca5a5;">STEP 5: Write to Redo Log Buffer</div>
+      <div class="arch-box arch-box-ram" style="margin-top:0.8rem;border-color:#fca5a5;">
+        <div class="arch-box-title" style="font-size:0.85rem;color:#fca5a5;">Redo Log Buffer (SGA)</div>
+        <div class="comp-card" style="max-width:360px;margin:0.8rem auto;">
+          <div style="color:rgba(255,255,255,0.9);text-align:left;font-size:0.85rem;">
+            <strong>Redo Entry:</strong><br>
+            "Changed employee 101 salary<br>
+            from 50000 to 60000 at SCN 123456"
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;color:rgba(255,255,255,0.6);margin-top:0.8rem;font-size:0.85rem;">→ This is for <strong>RECOVERY</strong> in case of crash!</div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+      <div class="nested-label" style="color:#6ee7b7;">STEP 6: You COMMIT!</div>
+      <div class="comp-card" style="max-width:280px;margin:0.8rem auto;border-color:#6ee7b7;">
+        <div style="color:#6ee7b7;font-size:1.2rem;">🎉 COMMIT;</div>
+      </div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ <strong>LGWR</strong> immediately writes redo buffer to disk!</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ LGWR: <strong style="color:#6ee7b7;">"Your changes are SAFE! I promise!"</strong></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ You get <strong>"Commit complete."</strong></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ <strong style="color:#fca5a5;">BUT data file is NOT updated yet!</strong></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ (DBWn writes dirty blocks later, lazily)</p>
+      <div class="tip-box" style="margin-top:1rem;background:rgba(34,211,238,0.06);">
+        <p><strong style="color:#67e8f9;">💡 WHY? Redo logs are sequential = FAST</strong></p>
+        <p>Data files are random = <strong style="color:#fca5a5;">SLOW</strong></p>
+        <p>Oracle promises safety via redo, not datafiles!</p>
+      </div>
+    </div>
+    <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+      <div class="nested-label" style="color:#fde68a;">STEP 7: DBWn writes dirty blocks eventually</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">Checkpoint occurs (CKPT signals DBWn)</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ DBWn writes dirty buffers to data files</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Blocks marked as <strong style="color:#6ee7b7;">CLEAN</strong></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Data is now permanently on disk</p>
+</div>
+  </div>
+  <div class="diagram-explain">
+    <strong>Why DML is more complex than SELECT:</strong> A simple UPDATE triggers a cascade of protective steps. Oracle creates an <em>UNDO</em> record first (so you can rollback), modifies data in Buffer Cache (marked DIRTY), writes to Redo Log Buffer (for crash recovery), and only on COMMIT does LGWR flush redo to disk. The actual data file update happens <em>later</em> via DBWn. This "write-ahead logging" guarantees durability even if the instance crashes.
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 THE BANK TRANSACTION ANALOGY:</strong></p>
+    <p>You (Customer): <em>"I'd like to deposit $1000"</em></p>
+    <p>Teller (Server Process): <em>"Certainly!"</em></p>
+    <ol style="margin-top:0.8rem;">
+      <li>Teller writes in transaction log: <strong>"Customer deposited $1000"</strong> (REDO)</li>
+      <li>Teller updates account balance on computer screen (BUFFER CACHE)</li>
+      <li>Teller stamps receipt: <strong>"Transaction recorded!"</strong> (COMMIT)</li>
+      <li>You: <em>"But did you update the main ledger?"</em></li>
+      <li>Teller: <em>"Don't worry! The transaction log is legally binding. I'll update the main ledger during lunch break."</em> (DBWn writes to data files during checkpoint)</li>
+    </ol>
+    <p style="margin-top:0.8rem;">This is exactly how Oracle works! The <strong>REDO LOG</strong> is the legally binding record. The data files are just the <em>"main ledger"</em> that gets updated when convenient.</p>
+  </div>
+</div>
+
+<!-- CHAPTER 9 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 09</div>
+  <h2 class="chapter-title"><span class="emoji">🐍</span>PL/SQL Execution — Where Code Meets Architecture</h2>
+  <p>PL/SQL is Oracle's procedural extension. Let's see how architecture handles it!</p>
+  <div class="arch-box" style="border-color:rgba(124,58,237,0.4);">
+    <div class="arch-box-title" style="color:#c4b5fd;">🐍 PL/SQL BLOCK EXECUTION</div>
+    <div class="code-block" style="margin-bottom:1rem;font-size:0.8rem;">
+DECLARE<br>
+&nbsp;&nbsp;v_sal NUMBER;<br>
+BEGIN<br>
+&nbsp;&nbsp;SELECT salary INTO v_sal FROM employees WHERE id=101;<br>
+&nbsp;&nbsp;v_sal := v_sal * 1.1;  -- 10% raise!<br>
+&nbsp;&nbsp;UPDATE employees SET salary = v_sal WHERE id=101;<br>
+&nbsp;&nbsp;COMMIT;<br>
+END;
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 1: PL/SQL Code sent to Server Process</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Compiled code stored in <strong>LIBRARY CACHE</strong> (SGA)</p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 2: Compilation</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Library Cache checks: <em>"Is this PL/SQL compiled?"</em></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ If not: Compile and store in Library Cache</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ If yes: Reuse compiled code from Library Cache</p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+      <div class="nested-label" style="color:#6ee7b7;">STEP 3: Execute the SELECT</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Same as regular SQL: Parse → Bind → Execute → Fetch</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Data read from Buffer Cache (or disk)</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Result stored in <strong>PGA variable v_sal</strong></p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(255,107,107,0.3);">
+      <div class="nested-label" style="color:#fca5a5;">STEP 4: Execute the UPDATE</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Read block to Buffer Cache</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Create <strong>UNDO</strong> record</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Modify block in Buffer Cache (<strong>DIRTY</strong>)</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Write redo to <strong>Redo Log Buffer</strong></p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+      <div class="nested-label" style="color:#6ee7b7;">STEP 5: COMMIT</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ <strong>LGWR</strong> writes redo to disk</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Transaction is <strong>durable!</strong></p>
+    </div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">STEP 6: PL/SQL block completes</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Cursor closed</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ PGA memory may be retained or freed</p>
+</div>
+  </div>
+  <div class="diagram-explain">
+    <strong>PL/SQL vs SQL execution:</strong> A PL/SQL block is compiled once and stored in the Library Cache (SGA). Variables live in your PGA. Each SQL statement <em>inside</em> the block still goes through the normal parse-execute-fetch cycle using SGA structures. The difference? PL/SQL batches multiple operations into one round-trip, reducing network overhead and allowing procedural logic (IF, LOOP, etc.) that pure SQL cannot express.
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 PL/SQL vs SQL — The Cooking Show Analogy:</strong></p>
+    <p><strong>SQL</strong> = Single Recipe</p>
+    <ul>
+      <li><em>"Make me a sandwich"</em> (one command)</li>
+      <li>Server process handles it step by step</li>
+    </ul>
+    <p style="margin-top:0.8rem;"><strong>PL/SQL</strong> = Full Cooking Show Episode</p>
+    <ul>
+      <li><em>"First, get the bread. Then add cheese. Then grill it. Then serve with fries. If customer is vegan, use tofu instead."</em></li>
+      <li>Server process handles the <strong>WHOLE</strong> script</li>
+      <li>Variables stored in <strong>PGA</strong></li>
+      <li>Cursors track execution state in <strong>PGA</strong></li>
+      <li>But data operations still use <strong>SGA</strong> (Buffer Cache, etc.)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- CHAPTER 10 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 10</div>
+  <h2 class="chapter-title"><span class="emoji">🎬</span>Database Startup & Shutdown — The Daily Routine</h2>
+  <div class="arch-box" style="border-color:rgba(45,212,191,0.4);">
+    <div class="arch-box-title" style="color:#6ee7b7;">🚀 DATABASE STARTUP SEQUENCE</div>
+    <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+      <div class="nested-label" style="color:#6ee7b7;">1. STARTUP NOMOUNT</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Reads <strong>SPFILE/PFILE</strong> (parameter file)</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Allocates <strong>SGA</strong> memory</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Starts background processes (<strong>SMON, PMON, etc.</strong>)</p>
+      <p style="color:#6ee7b7;font-size:0.9rem;">→ Instance is ALIVE! 🎉</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ But database is <strong>NOT mounted</strong> yet</p>
+      <div class="story-box" style="margin-top:0.8rem;background:rgba(251,191,36,0.06);">
+        <p><strong style="color:#fde68a;">🎬 You can create a new database at this stage!</strong></p>
+      </div>
+    </div>
+    <div class="arrow-down">⬇️</div>
+    <div class="nested-box" style="border-color:rgba(34,211,238,0.3);">
+      <div class="nested-label" style="color:#67e8f9;">2. STARTUP MOUNT</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Reads <strong>CONTROL FILE</strong></p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Learns about data files and redo log locations</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Database is <strong>MOUNTED</strong> but not open</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ You can perform <strong>recovery</strong> at this stage</p>
+    </div>
+    <div class="arrow-down">⬇️</div>
+    <div class="nested-box" style="border-color:rgba(124,58,237,0.3);">
+      <div class="nested-label" style="color:#c4b5fd;">3. STARTUP OPEN</div>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Opens <strong>ALL</strong> data files</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Opens <strong>ALL</strong> online redo log files</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Checks consistency (<strong>SCN</strong> matching)</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ If crash occurred: <strong>SMON</strong> performs recovery</p>
+      <p style="color:#6ee7b7;font-size:0.9rem;">→ Database is OPEN and ready for business!</p>
+      <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Users can now connect and run SQL</p>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The three-phase startup:</strong> <em>NOMOUNT</em> reads config and allocates memory — the instance is born. <em>MOUNT</em> reads the control file and locates all data/redo files — Oracle knows what it's working with. <em>OPEN</em> opens all files, checks consistency, and runs SMON recovery if needed — now users can connect. You can't skip phases; each depends on the previous.
+  </div>
+  <div class="arch-box" style="border-color:rgba(255,107,107,0.4);margin-top:1.2rem;">
+    <div class="arch-box-title" style="color:#fca5a5;">🛑 DATABASE SHUTDOWN MODES</div>
+    <div class="arch-grid arch-grid-2">
+      <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+        <div class="nested-label" style="color:#6ee7b7;">SHUTDOWN NORMAL (Default)</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ No new connections allowed</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Waits for <strong>ALL</strong> users to disconnect</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Cleanest shutdown. But might wait forever... 😴</p>
+      </div>
+      <div class="nested-box" style="border-color:rgba(251,191,36,0.3);">
+        <div class="nested-label" style="color:#fde68a;">SHUTDOWN TRANSACTIONAL</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ No new connections allowed</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Waits for current transactions to complete</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Then disconnects users</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"Let me finish my coffee first!"</em> ☕</p>
+      </div>
+      <div class="nested-box" style="border-color:rgba(255,107,107,0.3);">
+        <div class="nested-label" style="color:#fca5a5;">SHUTDOWN IMMEDIATE</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ No new connections allowed</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Rolls back uncommitted transactions</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Disconnects <strong>ALL</strong> users immediately</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><strong>Most commonly used!</strong> <em>"Everyone out! NOW!"</em> 🚨</p>
+      </div>
+      <div class="nested-box" style="border-color:rgba(255,107,107,0.5);">
+        <div class="nested-label" style="color:#fca5a5;">SHUTDOWN ABORT</div>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ <strong>IMMEDIATE</strong> termination — like pulling the power plug</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ <strong>NO</strong> checkpoint, <strong>NO</strong> writing of dirty buffers</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;">→ Instance recovery needed at next startup</p>
+        <p style="color:rgba(255,255,255,0.85);font-size:0.88rem;"><em>"FIRE! EVERYONE RUN!"</em> 🔥</p>
+        <p style="color:#fca5a5;font-size:0.88rem;">→ Use only in emergencies!</p>
+</div>
+    </div>
+  </div>
+  <div class="diagram-explain">
+    <strong>Shutdown trade-offs:</strong> <em>NORMAL</em> is polite but may wait forever. <em>TRANSACTIONAL</em> lets current work finish. <em>IMMEDIATE</em> rolls back and kicks everyone out — the production standard. <em>ABORT</em> is the nuclear option: no checkpoint, no cleanup, SMON must recover on next startup. Use ABORT only when the server is literally on fire.
+  </div>
+</div>
+
+<!-- CHAPTER 11 -->
+<div class="chapter-card">
+  <div class="chapter-num">Chapter 11</div>
+  <h2 class="chapter-title"><span class="emoji">🎓</span>The Big Picture — Everything Together!</h2>
+  <div class="big-picture">
+    <div class="comp-card" style="max-width:180px;margin:0 auto 1rem;">
+      <div class="icon">👤</div>
+      <div class="label">YOU (Client)</div>
+      <div class="desc">User typing SQL/PLSQL at SQL*Plus / SQL Developer</div>
+    </div>
+    <div class="arrow-down">⬇️ Network Connection</div>
+    <div class="comp-card" style="max-width:180px;margin:0 auto 1rem;">
+      <div class="icon">👂</div>
+      <div class="label">Listener (tnslsnr)</div>
+    </div>
+    <div class="arrow-down">⬇️</div>
+    <div class="arch-box" style="border-color:rgba(255,107,107,0.4);">
+      <div class="arch-box-title" style="color:#fca5a5;">🏛️ ORACLE SERVER</div>
+      <div class="nested-box">
+        <div class="nested-label" style="color:#6ee7b7;">ORACLE INSTANCE</div>
+        <div class="arch-grid arch-grid-2">
+          <div class="nested-box" style="border-color:rgba(45,212,191,0.3);">
+            <div class="nested-label" style="color:#6ee7b7;">SGA (System Global Area)</div>
+            <div class="arch-grid arch-grid-3">
+              <div class="comp-card" style="border-color:rgba(45,212,191,0.3);">
+                <div class="icon">📦</div>
+                <div class="label">Buffer Cache</div>
+                <div class="desc">Data</div>
+              </div>
+              <div class="comp-card" style="border-color:rgba(255,107,107,0.3);">
+                <div class="icon">📝</div>
+                <div class="label">Redo Log Buffer</div>
+              </div>
+              <div class="comp-card" style="border-color:rgba(124,58,237,0.3);">
+                <div class="icon">📚</div>
+                <div class="label">Shared Pool</div>
+                <div class="desc">SQL</div>
+              </div>
+            </div>
+          </div>
+          <div class="nested-box" style="border-color:rgba(34,211,238,0.3);">
+            <div class="nested-label" style="color:#67e8f9;">Background Processes</div>
+            <div style="text-align:center;margin-top:0.6rem;">
+              <span class="process-badge">SMON</span>
+              <span class="process-badge">PMON</span>
+              <span class="process-badge">DBWn</span>
+              <span class="process-badge">LGWR</span>
+              <span class="process-badge">CKPT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nested-box" style="margin-top:1rem;">
+        <div class="nested-label" style="color:#67e8f9;">Server Process (dedicated to YOU)</div>
+        <div class="arch-box arch-box-process" style="margin-top:0.6rem;">
+          <div class="arch-box-title" style="font-size:0.85rem;">PGA (Program Global Area)</div>
+          <div class="arch-grid arch-grid-3">
+            <div class="comp-card" style="font-size:0.8rem;"><div class="label">Session Memory</div></div>
+            <div class="comp-card" style="font-size:0.8rem;"><div class="label">Private SQL Area (Cursor)</div></div>
+            <div class="comp-card" style="font-size:0.8rem;"><div class="label">Sort Area</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="connection-line"></div>
+      <div class="nested-box">
+        <div class="nested-label" style="color:#fde68a;">ORACLE DATABASE (On Disk)</div>
+        <div class="arch-grid arch-grid-3">
+          <div class="comp-card" style="border-color:rgba(251,191,36,0.3);">
+            <div class="icon">📁</div>
+            <div class="label">Data Files</div>
+            <div class="desc">.dbf</div>
+          </div>
+          <div class="comp-card" style="border-color:rgba(251,191,36,0.3);">
+            <div class="icon">🎛️</div>
+            <div class="label">Control Files</div>
+            <div class="desc">.ctl</div>
+          </div>
+          <div class="comp-card" style="border-color:rgba(251,191,36,0.3);">
+            <div class="icon">📋</div>
+            <div class="label">Redo Logs</div>
+            <div class="desc">.log</div>
+          </div>
+        </div>
+        <div class="arch-grid arch-grid-2" style="margin-top:0.6rem;">
+          <div class="comp-card" style="border-color:rgba(34,211,238,0.3);">
+            <div class="icon">⚙️</div>
+            <div class="label">SPFILE</div>
+            <div class="desc">.ora</div>
+          </div>
+          <div class="comp-card" style="border-color:rgba(156,39,176,0.3);">
+            <div class="icon">🔐</div>
+            <div class="label">Password</div>
+            <div class="desc">orapw</div>
+          </div>
+        </div>
+      </div>
+</div>
+  </div>
+  <div class="diagram-explain">
+    <strong>The complete Oracle server in one view:</strong> Everything connected. <em>You</em> connect via network to the <em>Listener</em>, which spawns a dedicated <em>Server Process</em> with its own PGA. That process reads from the shared <em>SGA</em> (Buffer Cache, Shared Pool, Redo Log Buffer) while <em>Background Processes</em> (SMON, PMON, DBWn, LGWR, CKPT) keep everything synchronized. All persistent data lives in <em>Database Files</em> on disk. This is the architecture you need to visualize when troubleshooting performance or recovery issues.
+  </div>
+  <!-- Diagram page link -->
+  <div style="text-align:center;margin:1.5rem 0;">
+    <a href="oracle-architecture-diagram.html" target="_blank" class="btn-main" style="font-size:0.85rem;padding:0.9rem 2rem;">
+      🗺️ &nbsp;Open Interactive Diagram Page →
+    </a>
+    <p style="color:rgba(255,255,255,0.4);font-size:0.75rem;margin-top:0.7rem;font-family:'JetBrains Mono',monospace;">Opens in a new tab</p>
+  </div>
+  <div class="checklist" style="margin-top:1.5rem;">
+    <h3>🎯 THE "REMEMBER THIS" CHECKLIST:</h3>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>INSTANCE</strong> = Memory Structures (SGA) + Background Processes
+        <p>→ Exists only when Oracle is RUNNING</p>
+        <p>→ Dies when Oracle is shut down</p>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>DATABASE</strong> = Physical Files on Disk
+        <p>→ Exists permanently (unless you delete them!)</p>
+        <p>→ Data files, control files, redo log files</p>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>SGA</strong> = Shared Memory (everyone uses it)
+        <p>→ Buffer Cache, Redo Log Buffer, Shared Pool</p>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>PGA</strong> = Private Memory (only YOUR process uses it)
+        <p>→ Session info, cursors, sort area</p>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>Background Processes</strong> = The unsung heroes
+        <p>→ SMON (recovery), PMON (cleanup), DBWn (data writer)</p>
+        <p>→ LGWR (log writer), CKPT (checkpoint)</p>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>SQL Execution Flow:</strong>
+        <p>Parse → Bind → Execute → Fetch</p>
+        <p>(Shared Pool → Buffer Cache → Return results)</p>
+      </div>
+    </div>
+    <div class="checklist-item">
+      <div class="emoji">✅</div>
+      <div class="text">
+        <strong>DML Execution Flow:</strong>
+        <p>Parse → Read → Create Undo → Modify Buffer → Write Redo → Commit</p>
+        <p>(LGWR writes redo immediately, DBWn writes data later)</p>
+      </div>
+    </div>
+  </div>
+  <div class="analogy-box">
+    <p><strong>🎭 FINAL ANALOGY: Oracle is a Restaurant</strong></p>
+    <ul>
+      <li>You = Customer ordering food (SQL)</li>
+      <li>Listener = Host seating you</li>
+      <li>Server Process = Your personal waiter</li>
+      <li>SGA = Shared kitchen (fridge, recipe book, order log)</li>
+      <li>PGA = Your personal table setting</li>
+      <li>Background Processes = Kitchen staff, janitors, security</li>
+      <li>Database Files = The pantry storing all ingredients</li>
+      <li>Redo Logs = The security camera recording everything</li>
+      <li>Undo = The "undo" button on your phone</li>
+    </ul>
+    <p style="margin-top:1rem;text-align:center;font-size:1.05rem;"><strong>And THAT, my friend, is Oracle Database Architecture!</strong><br>Now go forth and write some SQL! 🚀</p>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="blog-cta">
+  <h3>Enjoyed this guide?</h3>
+  <p>Same content I post on LinkedIn — archived here so you don't have to scroll forever. Got questions about Oracle architecture? My inbox is open.</p>
+  <a href="mailto:vasudhadixit27@gmail.com" class="btn-main">Say hello →</a>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">VD<span>.</span></div>
+  <div class="footer-links">
+    <a href="index.html">Portfolio</a>
+    <div class="footer-divider"></div>
+    <a href="mailto:vasudhadixit27@gmail.com">Email</a>
+    <div class="footer-divider"></div>
+    <a href="https://www.linkedin.com/in/vasudhadixit-database-developer/" target="_blank">LinkedIn</a>
+    <div class="footer-divider"></div>
+    <a href="https://github.com/va5udha" target="_blank">GitHub</a>
+  </div>
+  <p class="footer-quip">
+    Oracle by day. Home chef by evening. Available immediately.
+    <span>No AI-generated buzzwords were used in the writing of this CV. Only real ones.</span>
+  </p>
+</footer>
+
+</body>
+</html>

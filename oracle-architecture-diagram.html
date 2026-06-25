@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oracle Architecture Visualizer — Interactive Flow Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   GLOBAL RESET — prevents all overflow
+   ════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+html, body {
+  overflow-x: hidden;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+/* Constrain all major containers */
+.chapter-card,
+.arch-box,
+.nested-box,
+.analogy-box,
+.story-box,
+.tip-box,
+.checklist,
+.comp-card,
+.diagram-explain,
+.code-block,
+.big-picture,
+.blog-cta {
+  max-width: 100%;
+}
+/* Ensure grids don't overflow */
+.arch-grid {
+  min-width: 0;
+}
+.arch-grid > * {
+  min-width: 0;
+}
+/* Force images/media to scale */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+/* Tables should not force width */
+.chapter-card table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#16003a;
+  --ink2:#2d1260;
+  --ink3:#7c6fa0;
+  --bg:#0d0020;
+  --bg2:#130030;
+  --indigo:#a78bfa;
+  --indigo2:#c4b5fd;
+  --coral:#ff6b6b;
+  --coral2:#ff8e8e;
+  --mint:#2dd4bf;
+  --gold:#fbbf24;
+  --white:#ffffff;
+  --border:rgba(255,255,255,0.12);
+  --border2:rgba(255,255,255,0.06);
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Syne',sans-serif;
+  color:#f0eeff;
+  overflow-x:clip;
+  background:#0d0020;
+  line-height:1.7;
+}
+
+/* ── AURORA MESH BACKGROUND ── */
+.aurora-bg{
+  position:fixed;inset:0;z-index:-1;
+  background:#0d0020;
+  overflow:hidden;
+}
+.aurora-bg::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(139,92,246,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 5%,  rgba(236,72,153,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 65% 85%, rgba(6,182,212,0.45)  0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 10% 80%, rgba(16,185,129,0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 90% 50%, rgba(251,146,60,0.30) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 35% at 50% 50%, rgba(167,139,250,0.20) 0%, transparent 60%);
+  animation:auroraShift 14s ease-in-out infinite alternate;
+}
+.aurora-bg::after{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 65% 55% at 75% 20%, rgba(99,102,241,0.40) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 45% at 25% 70%, rgba(244,114,182,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 45% 40% at 55% 40%, rgba(34,211,238,0.25) 0%, transparent 50%);
+  animation:auroraShift2 18s ease-in-out infinite alternate;
+}
+@keyframes auroraShift{
+  0%  {transform:translate(0,0) scale(1);}
+  33% {transform:translate(3%,2%) scale(1.04);}
+  66% {transform:translate(-2%,3%) scale(0.97);}
+  100%{transform:translate(2%,-2%) scale(1.03);}
+}
+@keyframes auroraShift2{
+  0%  {transform:translate(0,0) scale(1.02);}
+  50% {transform:translate(-3%,-2%) scale(0.96);}
+  100%{transform:translate(2%,3%) scale(1.05);}
+}
+.aurora-bg .grain{
+  position:absolute;inset:0;opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 3rem;height:64px;
+  background:rgba(8,0,20,0.82);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.nav-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;
+  letter-spacing:-0.02em;color:#fff;text-decoration:none;
+  display:flex;align-items:center;gap:8px;
+}
+.logo-pill{
+  background:rgba(167,139,250,0.25);color:#e0d4ff;
+  border:1px solid rgba(167,139,250,0.4);
+  font-size:0.6rem;font-weight:700;letter-spacing:0.1em;
+  padding:3px 8px;border-radius:20px;text-transform:uppercase;
+}
+.nav-links{display:flex;align-items:center;gap:0.2rem;}
+.nav-links a{
+  font-size:0.78rem;font-weight:600;letter-spacing:0.04em;
+  color:rgba(255,255,255,0.75);text-decoration:none;padding:0.4rem 0.9rem;
+  border-radius:6px;transition:all 0.15s;text-transform:uppercase;
+}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,0.1);}
+.nav-cta{
+  background:rgba(167,139,250,0.22);color:#e0d4ff;
+  border:1px solid rgba(167,139,250,0.45);
+  font-size:0.78rem;font-weight:700;
+  padding:0.45rem 1.1rem;border-radius:6px;text-decoration:none;
+  letter-spacing:0.04em;text-transform:uppercase;transition:all 0.15s;
+}
+.nav-cta:hover{background:var(--indigo);color:#fff;border-color:var(--indigo);}
+
+/* ── BLOG HERO ── */
+.blog-hero{
+  min-height:60vh;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:10rem 3rem 4rem;max-width:900px;margin:0 auto;
+  position:relative;
+}
+.blog-back{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.75);text-decoration:none;
+  margin-bottom:1.5rem;letter-spacing:0.04em;text-transform:uppercase;
+  transition:color 0.15s;
+}
+.blog-back:hover{color:#c4b5fd;}
+.blog-tag-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.blog-tag{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+  padding:0.28rem 0.7rem;border-radius:4px;border:1px solid;
+}
+.tag-indigo{background:rgba(124,58,237,0.3);border-color:rgba(167,139,250,0.5);color:#e0d4ff;}
+.tag-coral{background:rgba(220,38,38,0.25);border-color:rgba(255,107,107,0.45);color:#fecaca;}
+.tag-mint{background:rgba(5,150,105,0.25);border-color:rgba(45,212,191,0.4);color:#a7f3d0;}
+.tag-gold{background:rgba(180,130,0,0.25);border-color:rgba(251,191,36,0.4);color:#fef08a;}
+.blog-title{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(2rem,4.5vw,3.4rem);letter-spacing:-0.04em;
+  line-height:1.1;margin-bottom:1rem;color:#fff;
+  text-shadow:0 2px 20px rgba(0,0,0,0.5);
+}
+.blog-subtitle{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:clamp(1.1rem,2vw,1.5rem);color:rgba(255,255,255,0.85);
+  margin-bottom:1.5rem;
+}
+.blog-meta{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.75);letter-spacing:0.04em;
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+}
+.blog-meta span{display:flex;align-items:center;gap:6px;}
+
+/* ── CONTENT ── */
+.blog-content{
+  max-width:900px;margin:0 auto;padding:0 3rem 6rem;
+}
+
+/* Chapter cards */
+.chapter-card{
+  background:rgba(5,0,18,0.72);
+  overflow:hidden;
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:16px;padding:2.2rem 2.2rem 2rem;
+  margin-bottom:1.5rem;
+  position:relative;overflow:hidden;
+  transition:transform 0.2s,border-color 0.2s;
+  backdrop-filter:blur(16px);
+  box-sizing:border-box;
+}
+.chapter-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(167,139,250,0.35);
+}
+.chapter-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#7c3aed,#a78bfa);
+}
+.chapter-num{
+  font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:0.12em;
+  color:#c4b5fd;margin-bottom:0.6rem;
+}
+.chapter-title{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:clamp(1.3rem,2.5vw,1.7rem);letter-spacing:-0.03em;
+  color:#fff;margin-bottom:1.2rem;line-height:1.3;
+}
+.chapter-title .emoji{margin-right:0.4rem;}
+
+/* Text */
+.chapter-card p{
+  font-size:0.95rem;color:rgba(255,255,255,0.88);
+  line-height:1.85;margin-bottom:1rem;
+}
+.chapter-card strong{color:#fff;font-weight:700;}
+.chapter-card em{font-family:'Instrument Serif',serif;font-style:italic;color:#fbbf24;}
+.chapter-card code{
+  font-family:'JetBrains Mono',monospace;font-size:0.82rem;
+  background:rgba(255,255,255,0.1);padding:0.15rem 0.4rem;border-radius:4px;
+  color:#a7f3d0;
+}
+
+/* Flow steps */
+.flow-steps{
+  display:flex;flex-wrap:wrap;gap:0.6rem;justify-content:center;
+  margin:1.5rem 0;
+}
+.flow-step{
+  background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(167,139,250,0.4));
+  color:#fff;padding:0.7rem 1.2rem;border-radius:8px;
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;
+  text-align:center;box-shadow:0 2px 12px rgba(124,58,237,0.3);
+  position:relative;
+}
+.flow-step::after{
+  content:"→";position:absolute;right:-18px;top:50%;
+  transform:translateY(-50%);color:#c4b5fd;font-size:1.1rem;
+}
+.flow-step:last-child::after{content:none;}
+
+/* Architecture boxes inside chapters */
+.arch-box{
+  background:rgba(8,0,20,0.85);
+  border:1.5px solid rgba(167,139,250,0.35);
+  border-radius:12px;padding:1.5rem;margin:1.2rem 0;
+  position:relative;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.arch-box-title{
+  color:#c4b5fd;font-weight:700;font-size:1.05em;
+  margin-bottom:1rem;display:flex;align-items:center;gap:8px;
+  font-family:'Syne',sans-serif;
+}
+.arch-box-ram{border-color:rgba(45,212,191,0.45);}
+.arch-box-ram .arch-box-title{color:#6ee7b7;}
+.arch-box-disk{border-color:rgba(251,191,36,0.45);}
+.arch-box-disk .arch-box-title{color:#fde68a;}
+.arch-box-process{border-color:rgba(34,211,238,0.45);}
+.arch-box-process .arch-box-title{color:#67e8f9;}
+
+/* Grid layouts */
+.arch-grid{
+  display:grid;gap:1rem;margin:1rem 0;
+}
+.arch-grid-2{grid-template-columns:repeat(2,1fr);}
+.arch-grid-3{grid-template-columns:repeat(3,1fr);}
+.arch-grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:700px){
+  .arch-grid-2,.arch-grid-3,.arch-grid-4{grid-template-columns:1fr;}
+}
+
+/* Component cards */
+.comp-card{
+  background:rgba(255,255,255,0.06);
+  border:1.5px solid rgba(255,255,255,0.12);
+  border-radius:8px;padding:1rem;text-align:center;
+  transition:transform 0.2s,background 0.2s;
+  box-sizing:border-box;
+  max-width:100%;
+  word-break:break-word;
+  overflow-wrap:break-word;
+}
+.comp-card:hover{transform:translateY(-3px);background:rgba(255,255,255,0.1);}
+.comp-card .icon{font-size:1.6em;margin-bottom:0.4rem;}
+.comp-card .label{color:#fff;font-weight:600;font-size:0.9rem;}
+.comp-card .desc{color:rgba(255,255,255,0.7);font-size:0.78rem;margin-top:0.3rem;}
+
+/* Nested boxes */
+.nested-box{
+  background:rgba(255,255,255,0.04);
+  border:1px dashed rgba(255,255,255,0.15);
+  border-radius:8px;padding:1.2rem;margin:0.8rem 0;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.nested-label{
+  font-family:'JetBrains Mono',monospace;font-size:0.7rem;
+  text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:0.8rem;font-weight:600;
+}
+
+/* Arrows */
+.arrow-down{text-align:center;color:#6ee7b7;font-size:1.4em;margin:0.6rem 0;}
+.connection-line{
+  height:2px;
+  background:linear-gradient(90deg,transparent,#6ee7b7,transparent);
+  margin:1rem 0;position:relative;
+}
+.connection-line::before{
+  content:"▼";position:absolute;left:50%;top:-8px;
+  transform:translateX(-50%);color:#6ee7b7;font-size:0.75em;
+}
+
+/* Story, Analogy, Tip, Checklist boxes — PORTFOLIO DARK THEME */
+.story-box,
+.analogy-box,
+.tip-box,
+.checklist{
+  border-radius:12px;padding:1.8rem 1.5rem 1.5rem;
+  margin:1.5rem 0;position:relative;
+  border:1.5px solid;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.story-box{
+  background:rgba(251,191,36,0.08);
+  border-color:rgba(251,191,36,0.35);
+}
+.analogy-box{
+  background:rgba(45,212,191,0.08);
+  border-color:rgba(45,212,191,0.35);
+}
+.tip-box{
+  background:rgba(34,211,238,0.08);
+  border-color:rgba(34,211,238,0.35);
+}
+.checklist{
+  background:rgba(167,139,250,0.08);
+  border-color:rgba(167,139,250,0.35);
+  padding:2rem;
+}
+
+/* Box labels */
+.story-box::before,
+.analogy-box::before,
+.tip-box::before{
+  position:absolute;top:-12px;left:12px;
+  padding:4px 12px;border-radius:20px;
+  font-weight:700;font-size:0.72rem;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.04em;text-transform:uppercase;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.story-box::before{
+  content:"🎬 SQL Story";
+  background:rgba(251,191,36,0.9);color:#1a1200;
+}
+.analogy-box::before{
+  content:"🎭 Analogy";
+  background:rgba(45,212,191,0.9);color:#022c22;
+}
+.tip-box::before{
+  content:"💡 Key Insight";
+  background:rgba(34,211,238,0.9);color:#082f49;
+}
+
+/* Box content */
+.story-box p,
+.analogy-box p,
+.tip-box p,
+.checklist p{
+  color:rgba(255,255,255,0.9);font-size:0.92rem;line-height:1.8;
+}
+.story-box strong{color:#fde68a;}
+.analogy-box strong{color:#6ee7b7;}
+.tip-box strong{color:#67e8f9;}
+.checklist strong{color:#c4b5fd;}
+
+.story-box ul,.story-box ol,
+.analogy-box ul,.analogy-box ol,
+.tip-box ul,.tip-box ol,
+.checklist ul,.checklist ol{
+  margin-left:1.2rem;margin-top:0.6rem;
+  color:rgba(255,255,255,0.85);font-size:0.9rem;line-height:1.8;
+}
+.story-box li,.analogy-box li,.tip-box li,.checklist li{margin-bottom:0.3rem;}
+
+/* Checklist items */
+.checklist h3{
+  color:#c4b5fd;margin-bottom:1.2rem;font-size:1.2rem;
+  font-family:'Syne',sans-serif;font-weight:700;
+}
+.checklist-item{
+  display:flex;align-items:flex-start;gap:1rem;
+  margin:0.8rem 0;padding:1rem;
+  background:rgba(255,255,255,0.06);
+  border-radius:10px;border:1px solid rgba(255,255,255,0.08);
+  transition:background 0.2s;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.checklist-item:hover{background:rgba(255,255,255,0.1);}
+.checklist-item .emoji{font-size:1.3em;min-width:28px;}
+.checklist-item .text{flex:1;}
+.checklist-item .text strong{
+  color:#fff;display:block;margin-bottom:0.3rem;font-size:0.95rem;
+}
+.checklist-item .text p{color:rgba(255,255,255,0.75);font-size:0.85rem;line-height:1.6;}
+
+/* Tables */
+.chapter-card table{
+  width:100%;border-collapse:collapse;margin:1.2rem 0;
+  background:rgba(5,0,18,0.5);border-radius:10px;overflow:hidden;
+  border:1.5px solid rgba(255,255,255,0.12);
+  font-size:0.88rem;
+}
+.chapter-card th{
+  background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(167,139,250,0.4));
+  color:#fff;padding:0.9rem 1rem;text-align:left;font-weight:700;
+  font-family:'Syne',sans-serif;
+}
+.chapter-card td{
+  padding:0.75rem 1rem;border-bottom:1px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.85);
+}
+.chapter-card tr:last-child td{border-bottom:none;}
+.chapter-card tr:hover{background:rgba(255,255,255,0.04);}
+
+/* Code blocks */
+.code-block{
+  background:#0a0018;
+  color:#e0e0e0;padding:1.2rem 1.4rem;border-radius:10px;
+  overflow-x:auto;font-family:'JetBrains Mono',monospace;
+  margin:1rem 0;font-size:0.82rem;line-height:1.7;
+  border:1.5px solid rgba(255,255,255,0.12);
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.5);
+  box-sizing:border-box;
+  max-width:100%;
+}
+
+/* Process badges */
+.process-badge{
+  display:inline-block;
+  background:linear-gradient(135deg,rgba(34,211,238,0.4),rgba(59,130,246,0.4));
+  color:#fff;padding:0.35rem 0.8rem;border-radius:20px;
+  font-size:0.78rem;font-weight:700;margin:0.2rem;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  font-family:'JetBrains Mono',monospace;
+}
+
+/* Highlight */
+.highlight{
+  background:linear-gradient(120deg,transparent 0%,rgba(251,191,36,0.25) 0%,rgba(251,191,36,0.25) 100%,transparent 100%);
+  background-size:100% 40%;background-position:0 90%;background-repeat:no-repeat;
+  padding:0 3px;font-weight:700;color:#fde68a;
+}
+
+/* Step flow */
+.step-flow{
+  display:flex;flex-wrap:wrap;gap:0.6rem;
+  margin:1.2rem 0;justify-content:center;align-items:center;
+}
+.step{
+  background:linear-gradient(135deg,rgba(124,58,237,0.5),rgba(167,139,250,0.4));
+  color:#fff;padding:0.7rem 1.1rem;border-radius:8px;
+  font-weight:700;text-align:center;min-width:90px;
+  font-size:0.85rem;font-family:'Syne',sans-serif;
+}
+.step-arrow{font-size:1.3em;color:#c4b5fd;}
+
+/* Big picture diagram */
+.big-picture{
+  background:rgba(5,0,18,0.85);
+  border:1.5px solid rgba(167,139,250,0.3);
+  border-radius:16px;padding:2rem;margin:1.5rem 0;
+  backdrop-filter:blur(12px);
+  box-sizing:border-box;
+  max-width:100%;
+}
+.big-picture .comp-card{border-color:rgba(255,255,255,0.15);}
+
+/* CTA at bottom */
+.blog-cta{
+  background:rgba(5,0,18,0.72);
+  border:1.5px solid rgba(167,139,250,0.3);
+  border-radius:16px;padding:2.5rem;text-align:center;
+  margin-top:3rem;backdrop-filter:blur(16px);
+}
+.blog-cta h3{
+  font-family:'Syne',sans-serif;font-weight:700;
+  font-size:1.4rem;color:#fff;margin-bottom:0.8rem;
+}
+.blog-cta p{
+  color:rgba(255,255,255,0.8);font-size:0.95rem;
+  margin-bottom:1.5rem;line-height:1.7;
+}
+.btn-main{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  color:#fff;text-decoration:none;
+  font-size:0.85rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  padding:0.9rem 1.8rem;border-radius:6px;transition:all 0.2s;
+  font-family:'Syne',sans-serif;
+  box-shadow:0 4px 24px rgba(124,58,237,0.5);
+}
+.btn-main:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.65);}
+
+/* ── FOOTER ── */
+footer{
+  background:rgba(4,0,14,0.9);
+  border-top:1px solid rgba(255,255,255,0.08);
+  padding:3rem;
+  display:flex;flex-direction:column;align-items:center;gap:1.2rem;
+  backdrop-filter:blur(20px);
+}
+.footer-logo{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;
+  letter-spacing:-0.05em;color:#fff;
+}
+.footer-logo span{color:#ff8e8e;}
+.footer-links{display:flex;gap:0.3rem;flex-wrap:wrap;justify-content:center;}
+.footer-links a{
+  font-family:'JetBrains Mono',monospace;font-size:0.72rem;
+  color:rgba(255,255,255,0.88);text-decoration:none;padding:0.3rem 0.7rem;
+  border-radius:4px;transition:color 0.15s;text-transform:uppercase;letter-spacing:0.05em;
+}
+.footer-links a:hover{color:#c4b5fd;}
+.footer-divider{width:1px;height:14px;background:rgba(255,255,255,0.2);}
+.footer-quip{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:1rem;color:rgba(255,255,255,0.90);
+  text-align:center;line-height:1.7;
+}
+.footer-quip span{color:rgba(255,255,255,0.75);display:block;font-size:0.72rem;font-family:'JetBrains Mono',monospace;font-style:normal;margin-top:0.5rem;letter-spacing:0.04em;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  nav{padding:0 1.2rem;}
+  .nav-links{display:none;}
+  .blog-hero{padding:8rem 1.5rem 3rem;}
+  .blog-content{padding:0 1.5rem 4rem;}
+  .chapter-card{padding:1.5rem;}
+  .step-flow{flex-direction:column;}
+  .step-arrow{transform:rotate(90deg);}
+  .flow-step::after{content:none;}
+  .flow-steps{flex-direction:column;align-items:center;}
+  .flow-step::after{content:none;}
+}
+/* Diagram explanations */
+.diagram-explain{
+  background:rgba(167,139,250,0.08);
+  border-left:3px solid #c4b5fd;
+  border-radius:0 8px 8px 0;
+  padding:1rem 1.2rem;
+  margin:1.2rem 0;
+  color:rgba(255,255,255,0.88);
+  font-size:0.92rem;
+  line-height:1.8;
+  box-sizing:border-box;
+  max-width:100%;
+}
+.diagram-explain::before{
+  content:"💡 What this diagram shows:";
+  display:block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.7rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:#c4b5fd;
+  margin-bottom:0.4rem;
+}
+.diagram-explain strong{color:#fff;}
+.diagram-explain em{font-family:'Instrument Serif',serif;font-style:italic;color:#fbbf24;}
+/* Fix width overflow for boxes inside chapter cards */
+.chapter-card .analogy-box,
+.chapter-card .story-box,
+.chapter-card .tip-box,
+.chapter-card .checklist,
+.chapter-card .diagram-explain{
+  max-width:100%;
+  box-sizing:border-box;
+}
+.chapter-card .analogy-box::before,
+.chapter-card .story-box::before,
+.chapter-card .tip-box::before{
+  left:12px;
+}
+/* Ensure nested boxes don't overflow */
+.chapter-card .nested-box{
+  max-width:100%;
+  box-sizing:border-box;
+}
+.chapter-card .arch-grid{
+  max-width:100%;
+}
+/* Prevent comp-cards from forcing width */
+.chapter-card .comp-card{
+  word-break:break-word;
+  overflow-wrap:break-word;
+}
+</style>
+<style>
+/* ════════════════════════════════════════
+   DIAGRAM-SPECIFIC STYLES — Guide Theme
+   ════════════════════════════════════════ */
+
+/* Override body for diagram layout */
+body {
+  font-family: 'Syne', sans-serif;
+  color: #f0eeff;
+  background: #0d0020;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* App container */
+#app {
+  display: grid;
+  grid-template-rows: 64px 1fr;
+  grid-template-columns: 1fr 380px;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Topbar styled like guide nav */
+#topbar {
+  grid-column: 1 / -1;
+  background: rgba(8, 0, 20, 0.92);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 64px;
+  z-index: 10;
+}
+
+.tb-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tb-logo span {
+  background: rgba(167, 139, 250, 0.25);
+  color: #e0d4ff;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.scenarios {
+  display: flex;
+  gap: 6px;
+  padding: 0 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.sc-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.sc-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+.sc-btn.on {
+  background: rgba(124, 58, 237, 0.35);
+  border-color: rgba(167, 139, 250, 0.6);
+  color: #e0d4ff;
+}
+
+.tb-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Diagram pane */
+#diagram-pane {
+  grid-row: 2;
+  grid-column: 1;
+  overflow: hidden;
+  position: relative;
+  background: #0d0020;
+}
+
+/* Info pane */
+#info-pane {
+  grid-row: 2;
+  grid-column: 2;
+  background: rgba(5, 0, 18, 0.85);
+  border-left: 1.5px solid rgba(167, 139, 250, 0.2);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+}
+
+/* SVG styling */
+#arch-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.comp {
+  cursor: pointer;
+  transition: all 0.15s;
+  pointer-events: all;
+}
+
+.comp rect, .comp ellipse {
+  transition: all 0.2s;
+  pointer-events: all;
+}
+
+.comp:hover rect {
+  filter: brightness(1.35);
+}
+
+.comp:hover ellipse {
+  filter: brightness(1.35);
+}
+
+.comp.selected rect {
+  stroke-width: 2.5 !important;
+  filter: brightness(1.6);
+}
+
+.comp.selected ellipse {
+  stroke-width: 2.5 !important;
+  filter: brightness(1.6);
+}
+
+.flow-arrow {
+  opacity: 0;
+  transition: opacity 0.4s;
+  filter: drop-shadow(0 0 2px rgba(167, 139, 250, 0.6));
+}
+
+.flow-arrow.active {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.comp-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  fill: #e2e8f0;
+  pointer-events: none;
+  letter-spacing: 0.3px;
+}
+
+.comp-sublabel {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  fill: #7c6fa0;
+  pointer-events: none;
+}
+
+.zone-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  fill: #4a3f6b;
+  pointer-events: none;
+}
+
+.step-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  fill: #e0d4ff;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95);
+}
+
+.step-badge.active {
+  opacity: 1;
+}
+
+.badge-bg {
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.badge-bg.active {
+  opacity: 1;
+}
+
+.flow-arrow-track {
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+
+.flow-arrow-track.active {
+  opacity: 0.85;
+}
+
+/* Info pane content */
+#info-content {
+  display: none;
+  flex-direction: column;
+}
+
+#info-header {
+  padding: 24px 24px 0;
+}
+
+#info-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  line-height: 1.2;
+  color: #fff;
+}
+
+#info-category {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+#info-body {
+  padding: 0 24px 24px;
+  flex: 1;
+}
+
+#info-desc {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+
+.info-section-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #7c6fa0;
+  margin-bottom: 10px;
+  margin-top: 18px;
+}
+
+.info-point {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  align-items: flex-start;
+}
+
+.info-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.info-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  background: rgba(8, 0, 20, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #a7f3d0;
+  line-height: 1.7;
+  margin-top: 10px;
+  white-space: pre;
+  overflow-x: auto;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+.info-code .kw {
+  color: #a78bfa;
+}
+
+.info-code .val {
+  color: #34d399;
+}
+
+.info-code .cm {
+  color: #4a3f6b;
+}
+
+#info-default {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #4a3f6b;
+}
+
+#info-default svg {
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+#info-default p {
+  font-size: 0.95rem;
+  color: #7c6fa0;
+  line-height: 1.7;
+}
+
+.scenario-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sc-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.85rem;
+  color: #7c6fa0;
+  transition: all 0.3s;
+}
+
+.sc-step.active-step {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(167, 139, 250, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sc-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7c6fa0;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sc-step.active-step .sc-step-num {
+  background: rgba(124, 58, 237, 0.3);
+  color: #c4b5fd;
+}
+
+.analogy-box-diag {
+  background: rgba(251, 191, 36, 0.08);
+  border: 1.5px solid rgba(251, 191, 36, 0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 14px;
+}
+
+.analogy-title-diag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 8px;
+}
+
+.analogy-text-diag {
+  font-size: 0.85rem;
+  color: #d4a037;
+  line-height: 1.6;
+}
+
+/* Back link */
+.back-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.back-link:hover {
+  color: #c4b5fd;
+}
+
+/* Responsive */
+@media(max-width: 900px) {
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: 64px 1fr 0;
+  }
+  #info-pane {
+    display: none;
+  }
+  .scenarios {
+    gap: 3px;
+  }
+  .sc-btn {
+    padding: 4px 8px;
+    font-size: 0.6rem;
+  }
+  .tb-hint {
+    display: none;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="aurora-bg"><div class="grain"></div></div>
+
+<div id="app">
+
+<div id="topbar">
+  <div class="tb-logo">Oracle <span>Architecture</span> — Interactive Flow</div>
+  <div class="scenarios">
+    <button class="sc-btn on" onclick="setScenario('none')">Static View</button>
+    <button class="sc-btn" onclick="setScenario('startup')">Startup</button>
+    <button class="sc-btn" onclick="setScenario('connect')">Connect</button>
+    <button class="sc-btn" onclick="setScenario('query')">SELECT</button>
+    <button class="sc-btn" onclick="setScenario('dml')">DML/Undo</button>
+    <button class="sc-btn" onclick="setScenario('commit')">COMMIT</button>
+    <button class="sc-btn" onclick="setScenario('checkpoint')">Checkpoint</button>
+    <button class="sc-btn" onclick="setScenario('recovery')">Recovery</button>
+    <button class="sc-btn" onclick="setScenario('rac')">RAC</button>
+  </div>
+  <div class="tb-hint">Click any box to learn more</div>
+</div>
+
+<div id="diagram-pane">
+<svg id="arch-svg" viewBox="0 0 860 515" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;position:absolute;top:0;left:0;">
+<defs>
+  <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6366f1"/></marker>
+  <marker id="arr-amber" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#f59e0b"/></marker>
+  <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#10b981"/></marker>
+  <marker id="arr-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#ef4444"/></marker>
+  <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#a855f7"/></marker>
+  <marker id="arr-cyan" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#06b6d4"/></marker>
+</defs>
+
+<!-- Oracle Instance boundary -->
+<rect x="10" y="10" width="660" height="500" rx="12" fill="none" stroke="rgba(99,102,241,0.12)" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="24" y="26" class="zone-label">ORACLE INSTANCE</text>
+
+<!-- SGA Zone -->
+<rect x="22" y="34" width="636" height="210" rx="8" fill="rgba(99,102,241,0.03)" stroke="rgba(99,102,241,0.15)" stroke-width="1"/>
+<text x="34" y="50" class="zone-label" fill="rgba(99,102,241,0.5)">SGA — Shared Memory (like a shared whiteboard)</text>
+
+<!-- PGA Zone -->
+<rect x="22" y="254" width="636" height="70" rx="8" fill="rgba(168,85,247,0.03)" stroke="rgba(168,85,247,0.15)" stroke-width="1"/>
+<text x="34" y="270" class="zone-label" fill="rgba(168,85,247,0.5)">PGA — Private Memory (like your personal desk)</text>
+
+<!-- Background Processes Zone -->
+<rect x="22" y="336" width="636" height="70" rx="8" fill="rgba(16,185,129,0.03)" stroke="rgba(16,185,129,0.12)" stroke-width="1"/>
+<text x="34" y="352" class="zone-label" fill="rgba(16,185,129,0.4)">BACKGROUND PROCESSES — Oracle behind-the-scenes workers</text>
+
+<!-- Storage Zone -->
+<rect x="22" y="418" width="636" height="52" rx="8" fill="rgba(245,158,11,0.03)" stroke="rgba(245,158,11,0.12)" stroke-width="1"/>
+<text x="34" y="434" class="zone-label" fill="rgba(245,158,11,0.4)">DATABASE FILES — Permanent storage on disk</text>
+
+<!-- RAC Node 2 -->
+<rect x="680" y="10" width="170" height="500" rx="12" fill="rgba(6,182,212,0.02)" stroke="rgba(6,182,212,0.12)" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="690" y="26" class="zone-label" fill="rgba(6,182,212,0.4)">RAC NODE 2 (Another computer running Oracle)</text>
+
+<!-- Buffer Cache -->
+<g class="comp" id="comp-bufcache" onclick="selectComp('bufcache')">
+  <rect x="32" y="58" width="148" height="68" rx="7" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.35)" stroke-width="1" pointer-events="all" onclick="selectComp('bufcache')"/>
+  <rect x="40" y="78" width="16" height="12" rx="2" fill="rgba(245,158,11,0.5)"/>
+  <rect x="59" y="78" width="16" height="12" rx="2" fill="rgba(99,102,241,0.6)"/>
+  <rect x="78" y="78" width="16" height="12" rx="2" fill="rgba(16,185,129,0.5)"/>
+  <rect x="97" y="78" width="16" height="12" rx="2" fill="rgba(245,158,11,0.5)"/>
+  <rect x="116" y="78" width="16" height="12" rx="2" fill="rgba(16,185,129,0.5)"/>
+  <rect x="135" y="78" width="16" height="12" rx="2" fill="rgba(100,116,139,0.3)"/>
+  <rect x="40" y="93" width="16" height="12" rx="2" fill="rgba(16,185,129,0.5)"/>
+  <rect x="59" y="93" width="16" height="12" rx="2" fill="rgba(245,158,11,0.5)"/>
+  <rect x="78" y="93" width="16" height="12" rx="2" fill="rgba(99,102,241,0.6)"/>
+  <rect x="97" y="93" width="16" height="12" rx="2" fill="rgba(16,185,129,0.5)"/>
+  <rect x="116" y="93" width="16" height="12" rx="2" fill="rgba(100,116,139,0.3)"/>
+  <rect x="135" y="93" width="16" height="12" rx="2" fill="rgba(245,158,11,0.5)"/>
+  <text x="106" y="70" class="comp-label" text-anchor="middle" fill="#818cf8">Buffer Cache</text>
+  <text x="106" y="116" class="comp-sublabel" text-anchor="middle">Data blocks in memory</text>
+</g>
+
+<!-- Shared Pool -->
+<g class="comp" id="comp-sharedpool" onclick="selectComp('sharedpool')">
+  <rect x="192" y="58" width="130" height="68" rx="7" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.3)" stroke-width="1" pointer-events="all" onclick="selectComp('sharedpool')"/>
+  <text x="257" y="76" class="comp-label" text-anchor="middle" fill="#fbbf24">Shared Pool</text>
+  <rect x="200" y="82" width="54" height="18" rx="3" fill="rgba(245,158,11,0.15)"/>
+  <text x="227" y="95" class="comp-sublabel" text-anchor="middle" fill="#d97706">Library Cache</text>
+  <rect x="260" y="82" width="54" height="18" rx="3" fill="rgba(245,158,11,0.15)"/>
+  <text x="287" y="95" class="comp-sublabel" text-anchor="middle" fill="#d97706">Dict Cache</text>
+  <text x="257" y="117" class="comp-sublabel" text-anchor="middle">SQL plans and table info</text>
+</g>
+
+<!-- Redo Log Buffer -->
+<g class="comp" id="comp-redobuf" onclick="selectComp('redobuf')">
+  <rect x="334" y="58" width="118" height="68" rx="7" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.3)" stroke-width="1" pointer-events="all" onclick="selectComp('redobuf')"/>
+  <text x="393" y="76" class="comp-label" text-anchor="middle" fill="#f87171">Redo Log Buffer</text>
+  <path d="M342,88 Q360,84 378,88 Q396,92 414,88 Q432,84 444,88" stroke="rgba(239,68,68,0.5)" stroke-width="1.5" fill="none"/>
+  <path d="M342,98 Q360,94 378,98 Q396,102 414,98 Q432,94 444,98" stroke="rgba(239,68,68,0.3)" stroke-width="1.5" fill="none"/>
+  <path d="M342,108 Q360,104 378,108 Q396,112 414,108 Q432,104 444,108" stroke="rgba(239,68,68,0.2)" stroke-width="1.5" fill="none"/>
+  <text x="393" y="122" class="comp-sublabel" text-anchor="middle">Change records (WAL)</text>
+</g>
+
+<!-- Large Pool -->
+<g class="comp" id="comp-largepool" onclick="selectComp('largepool')">
+  <rect x="464" y="58" width="90" height="68" rx="7" fill="rgba(16,185,129,0.07)" stroke="rgba(16,185,129,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('largepool')"/>
+  <text x="509" y="76" class="comp-label" text-anchor="middle" fill="#34d399">Large Pool</text>
+  <text x="509" y="93" class="comp-sublabel" text-anchor="middle">RMAN backups</text>
+  <text x="509" y="105" class="comp-sublabel" text-anchor="middle">Parallel queries</text>
+  <text x="509" y="117" class="comp-sublabel" text-anchor="middle">Shared Server</text>
+</g>
+
+<!-- Streams Pool -->
+<g class="comp" id="comp-streams" onclick="selectComp('streams')">
+  <rect x="566" y="58" width="84" height="68" rx="7" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('streams')"/>
+  <text x="608" y="76" class="comp-label" text-anchor="middle" fill="#a855f7">Streams</text>
+  <text x="608" y="89" class="comp-label" text-anchor="middle" fill="#a855f7">Pool</text>
+  <text x="608" y="106" class="comp-sublabel" text-anchor="middle">GoldenGate</text>
+  <text x="608" y="118" class="comp-sublabel" text-anchor="middle">LogMiner</text>
+</g>
+
+<!-- Result Cache -->
+<g class="comp" id="comp-resultcache" onclick="selectComp('resultcache')">
+  <rect x="32" y="138" width="88" height="48" rx="7" fill="rgba(6,182,212,0.07)" stroke="rgba(6,182,212,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('resultcache')"/>
+  <text x="76" y="158" class="comp-label" text-anchor="middle" fill="#22d3ee">Result</text>
+  <text x="76" y="171" class="comp-label" text-anchor="middle" fill="#22d3ee">Cache</text>
+  <text x="76" y="178" class="comp-sublabel" text-anchor="middle">Query results</text>
+</g>
+
+<!-- Java Pool -->
+<g class="comp" id="comp-javapool" onclick="selectComp('javapool')">
+  <rect x="130" y="138" width="80" height="48" rx="7" fill="rgba(249,115,22,0.07)" stroke="rgba(249,115,22,0.2)" stroke-width="1" pointer-events="all" onclick="selectComp('javapool')"/>
+  <text x="170" y="165" class="comp-label" text-anchor="middle" fill="#fb923c">Java Pool</text>
+  <text x="170" y="178" class="comp-sublabel" text-anchor="middle">JVM sessions</text>
+</g>
+
+<!-- In-Memory Area -->
+<g class="comp" id="comp-inmemory" onclick="selectComp('inmemory')">
+  <rect x="310" y="138" width="96" height="48" rx="7" fill="rgba(239,68,68,0.06)" stroke="rgba(239,68,68,0.2)" stroke-width="1" pointer-events="all" onclick="selectComp('inmemory')"/>
+  <text x="358" y="158" class="comp-label" text-anchor="middle" fill="#f87171">In-Memory</text>
+  <text x="358" y="171" class="comp-label" text-anchor="middle" fill="#f87171">Area</text>
+  <text x="358" y="178" class="comp-sublabel" text-anchor="middle">Columnar format</text>
+</g>
+
+<!-- Keep / Recycle pools -->
+<g class="comp" id="comp-subpools" onclick="selectComp('subpools')">
+  <rect x="416" y="138" width="100" height="48" rx="7" fill="rgba(99,102,241,0.06)" stroke="rgba(99,102,241,0.18)" stroke-width="1" pointer-events="all" onclick="selectComp('subpools')"/>
+  <text x="466" y="157" class="comp-label" text-anchor="middle" fill="#818cf8">Keep Pool</text>
+  <rect x="424" y="163" width="40" height="14" rx="3" fill="rgba(99,102,241,0.1)"/>
+  <text x="444" y="174" class="comp-sublabel" text-anchor="middle">KEEP</text>
+  <rect x="469" y="163" width="40" height="14" rx="3" fill="rgba(99,102,241,0.05)"/>
+  <text x="489" y="174" class="comp-sublabel" text-anchor="middle">RECYCLE</text>
+  <text x="466" y="182" class="comp-sublabel" text-anchor="middle">Buffer sub-pools</text>
+</g>
+
+<!-- Undo -->
+<g class="comp" id="comp-undo" onclick="selectComp('undo')">
+  <rect x="220" y="138" width="80" height="48" rx="7" fill="rgba(236,72,153,0.08)" stroke="rgba(236,72,153,0.2)" stroke-width="1" pointer-events="all" onclick="selectComp('undo')"/>
+  <text x="260" y="162" class="comp-label" text-anchor="middle" fill="#f472b6">Undo</text>
+  <text x="260" y="175" class="comp-label" text-anchor="middle" fill="#f472b6">Segments</text>
+  <text x="260" y="182" class="comp-sublabel" text-anchor="middle">Before-images</text>
+</g>
+
+<!-- PGA SESSIONS -->
+<g class="comp" id="comp-pga1" onclick="selectComp('pga')">
+  <rect x="32" y="278" width="100" height="40" rx="6" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('pga')"/>
+  <text x="82" y="296" class="comp-label" text-anchor="middle" fill="#a855f7">Session 1</text>
+  <text x="82" y="308" class="comp-sublabel" text-anchor="middle">Sort - Hash - Cursors</text>
+</g>
+<g class="comp" id="comp-pga2" onclick="selectComp('pga')">
+  <rect x="144" y="278" width="100" height="40" rx="6" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('pga')"/>
+  <text x="194" y="296" class="comp-label" text-anchor="middle" fill="#a855f7">Session 2</text>
+  <text x="194" y="308" class="comp-sublabel" text-anchor="middle">Sort - Hash - Cursors</text>
+</g>
+<g class="comp" id="comp-pga3" onclick="selectComp('pga')">
+  <rect x="256" y="278" width="100" height="40" rx="6" fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.15)" stroke-width="1" pointer-events="all" onclick="selectComp('pga')"/>
+  <text x="306" y="300" class="comp-label" text-anchor="middle" fill="#7b5db5">Session N</text>
+  <text x="306" y="312" class="comp-sublabel" text-anchor="middle">Private to each user</text>
+</g>
+<text x="382" y="300" class="comp-sublabel" text-anchor="start">Each user gets their own PGA.</text>
+<text x="382" y="312" class="comp-sublabel" text-anchor="start">PGA_AGGREGATE_TARGET limits total.</text>
+
+<!-- BACKGROUND PROCESSES -->
+<g class="comp" id="comp-lgwr" onclick="selectComp('lgwr')">
+  <rect x="32" y="360" width="68" height="34" rx="6" fill="rgba(239,68,68,0.1)" stroke="rgba(239,68,68,0.35)" stroke-width="1" pointer-events="all" onclick="selectComp('lgwr')"/>
+  <text x="66" y="375" class="comp-label" text-anchor="middle" fill="#f87171">LGWR</text>
+  <text x="66" y="388" class="comp-sublabel" text-anchor="middle">Log Writer</text>
+</g>
+<g class="comp" id="comp-dbwn" onclick="selectComp('dbwn')">
+  <rect x="110" y="360" width="68" height="34" rx="6" fill="rgba(99,102,241,0.1)" stroke="rgba(99,102,241,0.3)" stroke-width="1" pointer-events="all" onclick="selectComp('dbwn')"/>
+  <text x="144" y="375" class="comp-label" text-anchor="middle" fill="#6366f1">DBWn</text>
+  <text x="144" y="388" class="comp-sublabel" text-anchor="middle">DB Writer</text>
+</g>
+<g class="comp" id="comp-ckpt" onclick="selectComp('ckpt')">
+  <rect x="188" y="360" width="68" height="34" rx="6" fill="rgba(16,185,129,0.1)" stroke="rgba(16,185,129,0.3)" stroke-width="1" pointer-events="all" onclick="selectComp('ckpt')"/>
+  <text x="222" y="375" class="comp-label" text-anchor="middle" fill="#34d399">CKPT</text>
+  <text x="222" y="388" class="comp-sublabel" text-anchor="middle">Checkpoint</text>
+</g>
+<g class="comp" id="comp-pmon" onclick="selectComp('pmon')">
+  <rect x="266" y="360" width="68" height="34" rx="6" fill="rgba(245,158,11,0.1)" stroke="rgba(245,158,11,0.3)" stroke-width="1" pointer-events="all" onclick="selectComp('pmon')"/>
+  <text x="300" y="375" class="comp-label" text-anchor="middle" fill="#f59e0b">PMON</text>
+  <text x="300" y="388" class="comp-sublabel" text-anchor="middle">Proc Monitor</text>
+</g>
+<g class="comp" id="comp-smon" onclick="selectComp('smon')">
+  <rect x="344" y="360" width="68" height="34" rx="6" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('smon')"/>
+  <text x="378" y="375" class="comp-label" text-anchor="middle" fill="#d97706">SMON</text>
+  <text x="378" y="388" class="comp-sublabel" text-anchor="middle">Sys Monitor</text>
+</g>
+<g class="comp" id="comp-arcn" onclick="selectComp('arcn')">
+  <rect x="422" y="360" width="68" height="34" rx="6" fill="rgba(168,85,247,0.1)" stroke="rgba(168,85,247,0.3)" stroke-width="1" pointer-events="all" onclick="selectComp('arcn')"/>
+  <text x="456" y="375" class="comp-label" text-anchor="middle" fill="#a855f7">ARCn</text>
+  <text x="456" y="388" class="comp-sublabel" text-anchor="middle">Archiver</text>
+</g>
+<g class="comp" id="comp-mmon" onclick="selectComp('mmon')">
+  <rect x="500" y="360" width="68" height="34" rx="6" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('mmon')"/>
+  <text x="534" y="375" class="comp-label" text-anchor="middle" fill="#22d3ee">MMON</text>
+  <text x="534" y="388" class="comp-sublabel" text-anchor="middle">AWR / Metrics</text>
+</g>
+<g class="comp" id="comp-reco" onclick="selectComp('reco')">
+  <rect x="578" y="360" width="68" height="34" rx="6" fill="rgba(249,115,22,0.08)" stroke="rgba(249,115,22,0.22)" stroke-width="1" pointer-events="all" onclick="selectComp('reco')"/>
+  <text x="612" y="375" class="comp-label" text-anchor="middle" fill="#fb923c">RECO</text>
+  <text x="612" y="388" class="comp-sublabel" text-anchor="middle">Dist Recovery</text>
+</g>
+
+
+
+<!-- RAC NODE 2 -->
+<g class="comp" id="comp-rac2" onclick="selectComp('rac')">
+  <rect x="688" y="34" width="154" height="80" rx="7" fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.2)" stroke-width="1" pointer-events="all" onclick="selectComp('rac')"/>
+  <text x="765" y="54" class="comp-label" text-anchor="middle" fill="#22d3ee">Buffer Cache</text>
+  <text x="765" y="68" class="comp-sublabel" text-anchor="middle">Instance 2</text>
+  <rect x="696" y="74" width="16" height="12" rx="2" fill="rgba(245,158,11,0.5)"/>
+  <rect x="715" y="74" width="16" height="12" rx="2" fill="rgba(16,185,129,0.5)"/>
+  <rect x="734" y="74" width="16" height="12" rx="2" fill="rgba(99,102,241,0.6)"/>
+  <rect x="753" y="74" width="16" height="12" rx="2" fill="rgba(245,158,11,0.3)"/>
+  <rect x="772" y="74" width="16" height="12" rx="2" fill="rgba(16,185,129,0.4)"/>
+  <rect x="696" y="90" width="16" height="12" rx="2" fill="rgba(16,185,129,0.4)"/>
+  <rect x="715" y="90" width="16" height="12" rx="2" fill="rgba(100,116,139,0.3)"/>
+  <rect x="734" y="90" width="16" height="12" rx="2" fill="rgba(245,158,11,0.5)"/>
+  <rect x="753" y="90" width="16" height="12" rx="2" fill="rgba(99,102,241,0.4)"/>
+  <rect x="772" y="90" width="16" height="12" rx="2" fill="rgba(100,116,139,0.2)"/>
+</g>
+
+<g class="comp" id="comp-gcs" onclick="selectComp('gcs')">
+  <rect x="688" y="126" width="72" height="36" rx="6" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('gcs')"/>
+  <text x="724" y="141" class="comp-label" text-anchor="middle" fill="#22d3ee">GCS</text>
+  <text x="724" y="154" class="comp-sublabel" text-anchor="middle">Global Cache</text>
+</g>
+<g class="comp" id="comp-ges" onclick="selectComp('ges')">
+  <rect x="768" y="126" width="72" height="36" rx="6" fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.18)" stroke-width="1" pointer-events="all" onclick="selectComp('ges')"/>
+  <text x="804" y="141" class="comp-label" text-anchor="middle" fill="#22d3ee">GES</text>
+  <text x="804" y="154" class="comp-sublabel" text-anchor="middle">Global Enqueue</text>
+</g>
+
+<rect x="688" y="172" width="154" height="24" rx="5" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.15)" stroke-width="1"/>
+<text x="765" y="188" class="comp-sublabel" text-anchor="middle" fill="rgba(6,182,212,0.5)">Private Interconnect</text>
+
+<!-- User / Application -->
+<g class="comp" id="comp-user" onclick="selectComp('user')">
+  <ellipse cx="765" cy="380" rx="62" ry="32" fill="rgba(168,85,247,0.08)" stroke="rgba(168,85,247,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('user')"/>
+  <text x="765" y="376" class="comp-label" text-anchor="middle" fill="#a855f7">Application</text>
+  <text x="765" y="390" class="comp-sublabel" text-anchor="middle">/ User Sessions</text>
+</g>
+
+<!-- Listener -->
+<g class="comp" id="comp-listener" onclick="selectComp('listener')">
+  <ellipse cx="765" cy="280" rx="52" ry="24" fill="rgba(6,182,212,0.08)" stroke="rgba(6,182,212,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('listener')"/>
+  <text x="765" y="276" class="comp-label" text-anchor="middle" fill="#22d3ee">Listener</text>
+  <text x="765" y="288" class="comp-sublabel" text-anchor="middle">tnslsnr</text>
+</g>
+
+<!-- Data Guard Standby -->
+<g class="comp" id="comp-dg" onclick="selectComp('dataguard')">
+  <rect x="688" y="440" width="154" height="44" rx="7" fill="rgba(16,185,129,0.06)" stroke="rgba(16,185,129,0.2)" stroke-width="1" stroke-dasharray="3,3" pointer-events="all" onclick="selectComp('dataguard')"/>
+  <text x="765" y="458" class="comp-label" text-anchor="middle" fill="#34d399">Data Guard</text>
+  <text x="765" y="472" class="comp-sublabel" text-anchor="middle">Standby Database</text>
+</g>
+
+<!-- FLOW ARROWS -->
+<!-- startup -->
+<path id="f-startup-1-track" class="flow-arrow-track" d="M 549,448 L 549,420 L 66,420 L 66,394" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-startup-1" class="flow-arrow" d="M 549,448 L 549,420 L 66,420 L 66,394" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-startup-2-track" class="flow-arrow-track" d="M 66,394 L 66,340" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-startup-2" class="flow-arrow" d="M 66,394 L 66,340" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-startup-3-track" class="flow-arrow-track" d="M 66,340 L 66,280 L 106,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-startup-3" class="flow-arrow" d="M 66,340 L 66,280 L 106,126" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-startup-4-track" class="flow-arrow-track" d="M 106,126 L 66,126 L 66,92" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-startup-4" class="flow-arrow" d="M 106,126 L 66,126 L 66,92" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-startup-5-track" class="flow-arrow-track" d="M 66,92 L 66,58" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-startup-5" class="flow-arrow" d="M 66,92 L 66,58" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-startup-6-track" class="flow-arrow-track" d="M 66,58 L 66,34 L 323,34 L 323,448" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-startup-6" class="flow-arrow" d="M 66,58 L 66,34 L 323,34 L 323,448" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+
+<!-- connect -->
+<path id="f-connect-1-track" class="flow-arrow-track" d="M 765,348 L 765,304" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-connect-1" class="flow-arrow" d="M 765,348 L 765,304" stroke="#a855f7" stroke-width="2.5" fill="none" marker-end="url(#arr-purple)" opacity="0"/>
+<path id="f-connect-2-track" class="flow-arrow-track" d="M 765,304 L 500,304 L 500,290" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-connect-2" class="flow-arrow" d="M 765,304 L 500,304 L 500,290" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+<path id="f-connect-3-track" class="flow-arrow-track" d="M 500,290 L 306,290" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-connect-3" class="flow-arrow" d="M 500,290 L 306,290" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+<path id="f-connect-4-track" class="flow-arrow-track" d="M 306,290 L 306,278 L 194,278" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-connect-4" class="flow-arrow" d="M 306,290 L 306,278 L 194,278" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+
+<!-- query -->
+<path id="f-query-1-track" class="flow-arrow-track" d="M 765,348 Q 600,340 393,250 L 257,140" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-query-1" class="flow-arrow" d="M 765,348 Q 600,340 393,250 L 257,140" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+<path id="f-query-2-track" class="flow-arrow-track" d="M 257,126 Q 200,110 106,110 L 106,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-query-2" class="flow-arrow" d="M 257,126 Q 200,110 106,110 L 106,126" stroke="#6366f1" stroke-width="2.5" fill="none" marker-end="url(#arr-blue)" opacity="0"/>
+<path id="f-query-3-track" class="flow-arrow-track" d="M 106,126 Q 106,140 106,280 L 144,350 L 144,382 L 120,382" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-query-3" class="flow-arrow" d="M 106,126 Q 106,140 106,280 L 144,350 L 144,382 L 120,382" stroke="#6366f1" stroke-width="2.5" fill="none" stroke-dasharray="4,4" marker-end="url(#arr-blue)" opacity="0"/>
+<path id="f-query-4-track" class="flow-arrow-track" d="M 106,280 L 84,280 L 84,458" stroke="#0a0e1a" stroke-width="5.0" fill="none" />
+  <path id="f-query-4" class="flow-arrow" d="M 106,280 L 84,280 L 84,458" stroke="#f59e0b" stroke-width="2.0" fill="none" stroke-dasharray="3,5" marker-end="url(#arr-amber)" opacity="0"/>
+<path id="f-query-5-track" class="flow-arrow-track" d="M 84,458 L 84,420 L 66,420 L 66,394" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-query-5" class="flow-arrow" d="M 84,458 L 84,420 L 66,420 L 66,394" stroke="#6366f1" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-blue)" opacity="0"/>
+
+<!-- dml -->
+<path id="f-dml-1-track" class="flow-arrow-track" d="M 765,348 Q 600,340 393,250 L 257,140" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-1" class="flow-arrow" d="M 765,348 Q 600,340 393,250 L 257,140" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+<path id="f-dml-2-track" class="flow-arrow-track" d="M 257,126 Q 200,110 106,110 L 106,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-2" class="flow-arrow" d="M 257,126 Q 200,110 106,110 L 106,126" stroke="#6366f1" stroke-width="2.5" fill="none" marker-end="url(#arr-blue)" opacity="0"/>
+<path id="f-dml-3-track" class="flow-arrow-track" d="M 106,126 Q 106,140 260,140 L 260,162" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-3" class="flow-arrow" d="M 106,126 Q 106,140 260,140 L 260,162" stroke="#ec4899" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-red)" opacity="0"/>
+<path id="f-dml-4-track" class="flow-arrow-track" d="M 260,186 L 260,200 L 106,200 L 106,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-4" class="flow-arrow" d="M 260,186 L 260,200 L 106,200 L 106,126" stroke="#6366f1" stroke-width="2.5" fill="none" stroke-dasharray="4,4" marker-end="url(#arr-blue)" opacity="0"/>
+<path id="f-dml-5-track" class="flow-arrow-track" d="M 106,126 Q 120,126 393,126 L 393,92" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-5" class="flow-arrow" d="M 106,126 Q 120,126 393,126 L 393,92" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-red)" opacity="0"/>
+<path id="f-dml-6-track" class="flow-arrow-track" d="M 393,126 L 393,200 L 66,200 L 66,382" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-6" class="flow-arrow" d="M 393,126 L 393,200 L 66,200 L 66,382" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-red)" opacity="0"/>
+<path id="f-dml-7-track" class="flow-arrow-track" d="M 66,394 L 66,420 L 170,420" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-dml-7" class="flow-arrow" d="M 66,394 L 66,420 L 170,420" stroke="#ef4444" stroke-width="2.5" fill="none" marker-end="url(#arr-red)" opacity="0"/>
+
+<!-- commit -->
+<path id="f-commit-1-track" class="flow-arrow-track" d="M 765,348 Q 765,300 580,240 Q 470,200 450,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-commit-1" class="flow-arrow" d="M 765,348 Q 765,300 580,240 Q 470,200 450,126" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+<path id="f-commit-2-track" class="flow-arrow-track" d="M 393,126 L 393,200 L 66,200 L 66,382" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-commit-2" class="flow-arrow" d="M 393,126 L 393,200 L 66,200 L 66,382" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-red)" opacity="0"/>
+<path id="f-commit-3-track" class="flow-arrow-track" d="M 66,420 L 66,458 L 170,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-commit-3" class="flow-arrow" d="M 66,420 L 66,458 L 170,458" stroke="#ef4444" stroke-width="2.5" fill="none" marker-end="url(#arr-red)" opacity="0"/>
+<path id="f-commit-4-track" class="flow-arrow-track" d="M 203,458 Q 203,430 500,430 Q 660,430 765,408" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-commit-4" class="flow-arrow" d="M 203,458 Q 203,430 500,430 Q 660,430 765,408" stroke="#10b981" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-green)" opacity="0"/>
+<path id="f-commit-5-track" class="flow-arrow-track" d="M 144,420 L 144,458 L 140,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-commit-5" class="flow-arrow" d="M 144,420 L 144,458 L 140,458" stroke="#6366f1" stroke-width="2.5" fill="none" stroke-dasharray="3,5" marker-end="url(#arr-blue)" opacity="0"/>
+
+<!-- checkpoint -->
+<path id="f-ckpt-1-track" class="flow-arrow-track" d="M 222,394 L 144,394 L 144,350 L 106,350 L 106,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-ckpt-1" class="flow-arrow" d="M 222,394 L 144,394 L 144,350 L 106,350 L 106,126" stroke="#10b981" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-green)" opacity="0"/>
+<path id="f-ckpt-2-track" class="flow-arrow-track" d="M 144,394 L 144,420 L 84,420 L 84,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-ckpt-2" class="flow-arrow" d="M 144,394 L 144,420 L 84,420 L 84,458" stroke="#6366f1" stroke-width="2.5" fill="none" marker-end="url(#arr-blue)" opacity="0"/>
+<path id="f-ckpt-3-track" class="flow-arrow-track" d="M 222,420 L 222,458 L 280,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-ckpt-3" class="flow-arrow" d="M 222,420 L 222,458 L 280,458" stroke="#10b981" stroke-width="2.5" fill="none" marker-end="url(#arr-green)" opacity="0"/>
+<path id="f-ckpt-4-track" class="flow-arrow-track" d="M 456,420 L 456,458 L 490,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-ckpt-4" class="flow-arrow" d="M 456,420 L 456,458 L 490,458" stroke="#a855f7" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-purple)" opacity="0"/>
+
+<!-- rac -->
+<path id="f-rac-1-track" class="flow-arrow-track" d="M 765,348 L 765,250 L 765,210" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-rac-1" class="flow-arrow" d="M 765,348 L 765,250 L 765,210" stroke="#22d3ee" stroke-width="2.5" fill="none" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-rac-2-track" class="flow-arrow-track" d="M 688,184 L 660,184 L 660,92 L 180,92" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-rac-2" class="flow-arrow" d="M 688,184 L 660,184 L 660,92 L 180,92" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-cyan)" opacity="0"/>
+<path id="f-rac-3-track" class="flow-arrow-track" d="M 660,92 L 688,92 L 688,114" stroke="#0a0e1a" stroke-width="6.0" fill="none" />
+  <path id="f-rac-3" class="flow-arrow" d="M 660,92 L 688,92 L 688,114" stroke="#f59e0b" stroke-width="3.0" fill="none" marker-end="url(#arr-amber)" opacity="0"/>
+
+<!-- recovery -->
+<path id="f-crash-1-track" class="flow-arrow-track" d="M 378,394 L 378,340 L 203,340 L 203,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-crash-1" class="flow-arrow" d="M 378,394 L 378,340 L 203,340 L 203,458" stroke="#10b981" stroke-width="2.5" fill="none" marker-end="url(#arr-green)" opacity="0"/>
+<path id="f-crash-2-track" class="flow-arrow-track" d="M 378,420 L 378,440 L 203,440 L 203,458" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-crash-2" class="flow-arrow" d="M 378,420 L 378,440 L 203,440 L 203,458" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-amber)" opacity="0"/>
+<path id="f-crash-3-track" class="flow-arrow-track" d="M 378,394 L 300,394 L 300,340 L 66,340 L 66,126" stroke="#0a0e1a" stroke-width="5.5" fill="none" />
+  <path id="f-crash-3" class="flow-arrow" d="M 378,394 L 300,394 L 300,340 L 66,340 L 66,126" stroke="#10b981" stroke-width="2.5" fill="none" stroke-dasharray="4,4" marker-end="url(#arr-green)" opacity="0"/>
+
+<!-- STEP BADGES -->
+<!-- startup -->
+<rect id="bg-b-startup-1" class="badge-bg" x="552.0" y="426.0" width="165.9" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-startup-1" class="step-badge" x="560" y="440">1 Read SPFILE config</text>
+<rect id="bg-b-startup-2" class="badge-bg" x="72.0" y="396.0" width="224.5" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-startup-2" class="step-badge" x="80" y="410">2 Start background processes</text>
+<rect id="bg-b-startup-3" class="badge-bg" x="72.0" y="296.0" width="173.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-startup-3" class="step-badge" x="80" y="310">3 Allocate SGA memory</text>
+<rect id="bg-b-startup-4" class="badge-bg" x="102.0" y="96.0" width="158.6" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-startup-4" class="step-badge" x="110" y="110">4 Read Control File</text>
+<rect id="bg-b-startup-5" class="badge-bg" x="72.0" y="56.0" width="246.4" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-startup-5" class="step-badge" x="80" y="70">5 Open data files and redo logs</text>
+<rect id="bg-b-startup-6" class="badge-bg" x="322.0" y="426.0" width="202.5" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-startup-6" class="step-badge" x="330" y="440">6 SMON recovery if needed</text>
+
+<!-- connect -->
+<rect id="bg-b-connect-1" class="badge-bg" x="680.0" y="316.0" width="173.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-connect-1" class="step-badge" x="688" y="330">1 User clicks Connect</text>
+<rect id="bg-b-connect-2" class="badge-bg" x="512.0" y="256.0" width="209.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-connect-2" class="step-badge" x="520" y="270">2 Listener accepts request</text>
+<rect id="bg-b-connect-3" class="badge-bg" x="392.0" y="310.0" width="253.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-connect-3" class="step-badge" x="400" y="324">3 Listener spawns Server Process</text>
+<rect id="bg-b-connect-4" class="badge-bg" x="192.0" y="256.0" width="217.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-connect-4" class="step-badge" x="200" y="270">4 PGA allocated for session</text>
+
+<!-- query -->
+<rect id="bg-b-query-1" class="badge-bg" x="442.0" y="286.0" width="209.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-query-1" class="step-badge" x="450" y="300">1 Parse SQL in Shared Pool</text>
+<rect id="bg-b-query-2" class="badge-bg" x="102.0" y="98.0" width="165.9" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-query-2" class="step-badge" x="110" y="112">2 Check Buffer Cache</text>
+<rect id="bg-b-query-3" class="badge-bg" x="52.0" y="356.0" width="180.6" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-query-3" class="step-badge" x="60" y="370">3 DBWn reads from disk</text>
+<rect id="bg-b-query-4" class="badge-bg" x="52.0" y="426.0" width="173.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-query-4" class="step-badge" x="60" y="440">4 Return data to user</text>
+
+<!-- dml -->
+<rect id="bg-b-dml-1" class="badge-bg" x="442.0" y="286.0" width="100.0" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-1" class="step-badge" x="450" y="300">1 Parse SQL</text>
+<rect id="bg-b-dml-2" class="badge-bg" x="102.0" y="98.0" width="239.1" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-2" class="step-badge" x="110" y="112">2 Read block into Buffer Cache</text>
+<rect id="bg-b-dml-3" class="badge-bg" x="192.0" y="136.0" width="202.5" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-3" class="step-badge" x="200" y="150">3 Write UNDO before-image</text>
+<rect id="bg-b-dml-4" class="badge-bg" x="112.0" y="166.0" width="180.6" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-4" class="step-badge" x="120" y="180">4 Modify block (DIRTY)</text>
+<rect id="bg-b-dml-5" class="badge-bg" x="242.0" y="96.0" width="151.3" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-5" class="step-badge" x="250" y="110">5 Write REDO entry</text>
+<rect id="bg-b-dml-6" class="badge-bg" x="72.0" y="206.0" width="209.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-6" class="step-badge" x="80" y="220">6 LGWR writes redo to disk</text>
+<rect id="bg-b-dml-7" class="badge-bg" x="160.0" y="436.0" width="151.3" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-dml-7" class="step-badge" x="168" y="450">7 COMMIT complete!</text>
+
+<!-- commit -->
+<rect id="bg-b-commit-1" class="badge-bg" x="612.0" y="246.0" width="165.9" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-commit-1" class="step-badge" x="620" y="260">1 User issues COMMIT</text>
+<rect id="bg-b-commit-2" class="badge-bg" x="72.0" y="206.0" width="253.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-commit-2" class="step-badge" x="80" y="220">2 LGWR writes redo to disk (WAL)</text>
+<rect id="bg-b-commit-3" class="badge-bg" x="160.0" y="436.0" width="187.9" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-commit-3" class="step-badge" x="168" y="450">3 Redo log file updated</text>
+<rect id="bg-b-commit-4" class="badge-bg" x="412.0" y="460.0" width="202.5" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-commit-4" class="step-badge" x="420" y="474">4 COMMIT success returned</text>
+<rect id="bg-b-commit-5" class="badge-bg" x="147.0" y="460.0" width="217.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-commit-5" class="step-badge" x="155" y="474">5 DBWn writes blocks lazily</text>
+
+<!-- checkpoint -->
+<rect id="bg-b-ckpt-1" class="badge-bg" x="147.0" y="332.0" width="158.6" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-ckpt-1" class="step-badge" x="155" y="346">1 CKPT signals DBWn</text>
+<rect id="bg-b-ckpt-2" class="badge-bg" x="76.0" y="434.0" width="217.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-ckpt-2" class="step-badge" x="84" y="448">2 DBWn flushes dirty blocks</text>
+<rect id="bg-b-ckpt-3" class="badge-bg" x="214.0" y="460.0" width="246.4" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-ckpt-3" class="step-badge" x="222" y="474">3 CKPT updates control file SCN</text>
+<rect id="bg-b-ckpt-4" class="badge-bg" x="392.0" y="434.0" width="261.1" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-ckpt-4" class="step-badge" x="400" y="448">4 ARCn archives filled redo group</text>
+
+<!-- rac -->
+<rect id="bg-b-rac-1" class="badge-bg" x="680.0" y="282.0" width="180.6" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-rac-1" class="step-badge" x="688" y="296">1 Node 2 needs Block X</text>
+<rect id="bg-b-rac-2" class="badge-bg" x="392.0" y="158.0" width="217.2" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-rac-2" class="step-badge" x="400" y="172">2 GCS finds block on Node 1</text>
+<rect id="bg-b-rac-3" class="badge-bg" x="607.0" y="70.0" width="261.1" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-rac-3" class="step-badge" x="615" y="84">3 Block shipped over interconnect</text>
+
+<!-- recovery -->
+<rect id="bg-b-crash-1" class="badge-bg" x="292.0" y="460.0" width="253.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-crash-1" class="step-badge" x="300" y="474">1 SMON reads redo log on startup</text>
+<rect id="bg-b-crash-2" class="badge-bg" x="292.0" y="434.0" width="224.5" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-crash-2" class="step-badge" x="300" y="448">2 Roll forward then rollback</text>
+<rect id="bg-b-crash-3" class="badge-bg" x="72.0" y="266.0" width="253.8" height="26.0" rx="4" fill="rgba(10,14,26,0.92)" stroke="rgba(99,102,241,0.35)" stroke-width="1.2"/>
+  <text id="b-crash-3" class="step-badge" x="80" y="280">3 Buffer Cache rebuilt from disk</text>
+
+<!-- STORAGE — rendered last so they sit on top of flow arrows/badges and capture clicks -->
+<g class="comp" id="comp-datafile" onclick="selectComp('datafile')">
+  <rect x="32" y="436" width="105" height="26" rx="5" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('datafile')"/>
+  <text x="84" y="454" class="comp-label" text-anchor="middle" fill="#d97706">Datafiles (.dbf)</text>
+</g>
+<g class="comp" id="comp-redolog" onclick="selectComp('redolog')">
+  <rect x="148" y="436" width="110" height="26" rx="5" fill="rgba(239,68,68,0.08)" stroke="rgba(239,68,68,0.25)" stroke-width="1" pointer-events="all" onclick="selectComp('redolog')"/>
+  <text x="203" y="454" class="comp-label" text-anchor="middle" fill="#f87171">Redo Log Files</text>
+</g>
+<g class="comp" id="comp-controlfile" onclick="selectComp('controlfile')">
+  <rect x="269" y="436" width="108" height="26" rx="5" fill="rgba(16,185,129,0.07)" stroke="rgba(16,185,129,0.22)" stroke-width="1" pointer-events="all" onclick="selectComp('controlfile')"/>
+  <text x="323" y="454" class="comp-label" text-anchor="middle" fill="#34d399">Control Files</text>
+</g>
+<g class="comp" id="comp-archivelog" onclick="selectComp('archivelog')">
+  <rect x="388" y="436" width="110" height="26" rx="5" fill="rgba(168,85,247,0.07)" stroke="rgba(168,85,247,0.22)" stroke-width="1" pointer-events="all" onclick="selectComp('archivelog')"/>
+  <text x="443" y="454" class="comp-label" text-anchor="middle" fill="#a855f7">Archive Logs</text>
+</g>
+<g class="comp" id="comp-spfile" onclick="selectComp('spfile')">
+  <rect x="509" y="436" width="80" height="26" rx="5" fill="rgba(6,182,212,0.07)" stroke="rgba(6,182,212,0.2)" stroke-width="1" pointer-events="all" onclick="selectComp('spfile')"/>
+  <text x="549" y="454" class="comp-label" text-anchor="middle" fill="#22d3ee">SPFILE</text>
+</g>
+<g class="comp" id="comp-tempfile" onclick="selectComp('tempfile')">
+  <rect x="600" y="436" width="54" height="26" rx="5" fill="rgba(100,116,139,0.07)" stroke="rgba(100,116,139,0.2)" stroke-width="1" pointer-events="all" onclick="selectComp('tempfile')"/>
+  <text x="627" y="454" class="comp-label" text-anchor="middle" fill="#64748b">Tempfiles</text>
+</g>
+</svg>
+</div>
+
+<div id="info-pane">
+  <div id="info-content" style="display:none">
+    <div id="info-header">
+      <div id="info-category"></div>
+      <div id="info-title"></div>
+    </div>
+    <div id="info-body">
+      <div id="info-desc"></div>
+      <div id="info-extra"></div>
+    </div>
+  </div>
+  <div id="info-default">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" stroke="#4a3f6b" stroke-width="1.5"/>
+      <path d="M24 14v14M24 34v2" stroke="#4a3f6b" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <p style="font-size:0.95rem;color:#7c6fa0;line-height:1.7">Click any component<br>to explore its role.</p>
+    <p style="font-size:0.8rem;color:#2d1260;margin-top:16px">Or pick a scenario above<br>to watch a live data flow!</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+
+var INFO = {
+  bufcache: {
+    cat: "SGA - Memory",
+    title: "Buffer Cache",
+    color: "#6366f1",
+    desc: "The Buffer Cache is Oracle's fridge - it keeps copies of data blocks in memory so queries don't have to read from slow disk every time. When you run SELECT, Oracle first looks here. A cache hit is ~10,000x faster than a disk read!",
+    points: [
+      "Like a fridge: keeps frequently used data cold and ready",
+      "Dirty blocks = modified in memory but not yet saved to disk",
+      "Cache hit ratio should be >95% in production",
+      "KEEP pool pins hot objects; RECYCLE pool for large scans"
+    ],
+    analogy: "Think of Buffer Cache as the fridge in a shared kitchen. Everyone grabs ingredients from here first. If it is not in the fridge, someone has to go to the pantry (disk) - which takes much longer!",
+    code: "SELECT name, value FROM v$sysstat WHERE name IN ('db block gets', 'consistent gets', 'physical reads');"
+  },
+  sharedpool: {
+    cat: "SGA - Memory",
+    title: "Shared Pool",
+    color: "#f59e0b",
+    desc: "The Shared Pool is like a recipe book in a shared kitchen. It stores parsed SQL statements (Library Cache) and table definitions (Data Dictionary Cache) so Oracle does not have to re-parse the same query repeatedly.",
+    points: [
+      "Hard parse = new SQL, must parse, validate, and plan - expensive!",
+      "Soft parse = SQL already cached, just verify and reuse - fast!",
+      "Bind variables are crucial: WHERE id = :b1 caches one plan",
+      "Literal values (WHERE id = 1 vs WHERE id = 2) = separate hard parses!"
+    ],
+    analogy: "Like a recipe book: once you figure out how to make coffee, you don't re-invent the recipe every morning. You just look it up!",
+    code: "SELECT sql_id, sharable_mem/1024/1024 mb, executions, SUBSTR(sql_text,1,60) snippet FROM v$sql ORDER BY sharable_mem DESC FETCH FIRST 10 ROWS ONLY;"
+  },
+  redobuf: {
+    cat: "SGA - Write-Ahead Log",
+    title: "Redo Log Buffer",
+    color: "#ef4444",
+    desc: "A circular memory buffer that holds a diary of every change before it is written to disk. This is Oracle's insurance policy - if power fails, the diary lets Oracle replay changes and recover your data.",
+    points: [
+      "LGWR flushes to disk on every COMMIT - this is the WAL guarantee",
+      "Also flushes when buffer is 1/3 full or every 3 seconds",
+      "Intentionally small (16-128MB) because LGWR flushes frequently",
+      "If you see 'log buffer space' waits, LGWR cannot keep up"
+    ],
+    analogy: "Like a security camera recording everything. If the restaurant burns down, you can replay the tapes to see what happened and rebuild.",
+    code: "SELECT name, value FROM v$sysstat WHERE name LIKE '%redo%';"
+  },
+  largepool: {
+    cat: "SGA - Memory",
+    title: "Large Pool",
+    color: "#10b981",
+    desc: "An optional pool for big memory jobs that would otherwise clutter the Shared Pool. Used by RMAN backups, parallel queries, and Shared Server (MTS) sessions.",
+    points: [
+      "Without it, RMAN and parallel queries use Shared Pool - fragmentation",
+      "Each parallel query slave gets work area from here",
+      "Size based on peak RMAN + parallel workload (200MB-4GB)",
+      "V$SGASTAT shows real-time usage"
+    ],
+    analogy: "Like a catering table for big meetings - you don't want to clutter the regular kitchen counters with massive prep work!",
+    code: "SELECT name, bytes/1024/1024 mb FROM v$sgastat WHERE pool = 'large pool';"
+  },
+  streams: {
+    cat: "SGA - Replication",
+    title: "Streams Pool",
+    color: "#a855f7",
+    desc: "Supports Oracle GoldenGate and LogMiner for data replication. It stages captured changes from the redo log before shipping them to another database.",
+    points: [
+      "GoldenGate's LogMiner reads redo and stages changes here",
+      "If too small, capture lag increases as it spills to disk",
+      "Auto-sized when STREAMS_POOL_SIZE = 0 and GoldenGate is active",
+      "Typical: 200MB-2GB depending on DML rate"
+    ],
+    analogy: "Like a loading dock - packages (changes) arrive here before being shipped to their destination.",
+    code: "SELECT name, bytes/1024/1024 mb FROM v$sgastat WHERE pool = 'streams pool';"
+  },
+  undo: {
+    cat: "SGA - Recovery",
+    title: "Undo Segments",
+    color: "#ec4899",
+    desc: "Undo stores the before image of changed data. It is Oracle's time machine - lets you ROLLBACK mistakes, provides read consistency (other users see old data while you modify), and enables Flashback features.",
+    points: [
+      "Before every UPDATE/DELETE, Oracle writes the old value to Undo",
+      "ROLLBACK uses Undo to restore original data",
+      "Read consistency: other queries see pre-change data using Undo",
+      "UNDO_RETENTION controls how long Undo is kept after commit"
+    ],
+    analogy: "Like the Undo button in Word (Ctrl+Z). Before you make changes, Oracle secretly saves a copy so you can undo if needed!",
+    code: "SELECT tablespace_name, ROUND(SUM(bytes)/1024/1024,2) mb_used FROM dba_undo_extents GROUP BY tablespace_name;"
+  },
+  pga: {
+    cat: "PGA - Per-Session Memory",
+    title: "Program Global Area (PGA)",
+    color: "#a855f7",
+    desc: "The PGA is YOUR private desk - memory allocated just for your session. It holds your session settings, private SQL cursors, sort areas, and hash join work areas. Unlike the SGA, no one else can see your PGA.",
+    points: [
+      "Sort operations (ORDER BY, GROUP BY) use PGA sort area",
+      "If sort is too big for PGA -> spills to TEMP file (100x slower!)",
+      "Hash joins also use PGA - must fit or they spill",
+      "PGA_AGGREGATE_TARGET controls total PGA across all sessions"
+    ],
+    analogy: "SGA is the shared kitchen (everyone uses it). PGA is YOUR personal tray - only you eat from it. When you leave, your tray is cleaned.",
+    code: "SELECT sql_id, operation_type, last_memory_used/1024 kb_used FROM v$sql_workarea WHERE last_tempseg_size > 0;"
+  },
+  lgwr: {
+    cat: "Background Process",
+    title: "LGWR - Log Writer",
+    color: "#ef4444",
+    desc: "LGWR is Oracle's most urgent worker. It writes the Redo Log Buffer to disk, and MUST finish before COMMIT can return to you. Its speed = your commit latency. It is like the accountant who must record every transaction before confirming it.",
+    points: [
+      "Writes on: COMMIT, buffer 1/3 full, 3-second timeout, before DBWn",
+      "Sequential writes = fast (like writing a diary straight through)",
+      "In RAC, each node writes to its own local redo log",
+      "Oracle 12.2+ uses LGWR worker processes (LG00, LG01...) for parallel writing"
+    ],
+    analogy: "Like a restaurant accountant who must write every order in the ledger before confirming the bill is paid. Fast, sequential writing.",
+    code: "SELECT TRUNC(first_time,'HH') hour, COUNT(*) switches FROM v$log_history WHERE first_time > SYSDATE - 1 GROUP BY TRUNC(first_time,'HH');"
+  },
+  dbwn: {
+    cat: "Background Process",
+    title: "DBWn - Database Writer",
+    color: "#6366f1",
+    desc: "DBWn writes dirty blocks from Buffer Cache to datafiles. It is DELIBERATELY lazy - it does not write on every COMMIT. This is what makes Oracle fast: commits only need LGWR (sequential redo), not random datafile I/O.",
+    points: [
+      "Writes when: Buffer Cache fills, CKPT requests, or every 3 seconds",
+      "Multiple DBWn processes (DBW0, DBW1...) for high throughput",
+      "DBWn writes BEFORE advancing checkpoint - guarantees recovery",
+      "Slow DBWn causes 'free buffer waits' - sessions stall"
+    ],
+    analogy: "Like a janitor who cleans the kitchen during slow hours, not after every single order. More efficient to batch the work!",
+    code: "SELECT event, total_waits, time_waited FROM v$system_event WHERE event IN ('free buffer waits','write complete waits');"
+  },
+  ckpt: {
+    cat: "Background Process",
+    title: "CKPT - Checkpoint",
+    color: "#10b981",
+    desc: "CKPT is the timekeeper. It creates consistent recovery points by signaling DBWn to write all dirty blocks, then updates control files with the current SCN. After a checkpoint, Oracle only needs to replay redo from that point forward.",
+    points: [
+      "Checkpoint = known recovery point after crash",
+      "Incremental checkpoint: continuously advances SCN (Oracle 8i+)",
+      "FAST_START_MTTR_TARGET controls how often checkpoints fire",
+      "Log switch forces a checkpoint on the completed redo group"
+    ],
+    analogy: "Like a restaurant manager who periodically says 'everyone finish your current orders and clean your stations' - creating a known state to resume from.",
+    code: "SELECT recovery_estimated_ios, target_mttr, estimated_mttr FROM v$instance_recovery;"
+  },
+  pmon: {
+    cat: "Background Process",
+    title: "PMON - Process Monitor",
+    color: "#f59e0b",
+    desc: "PMON is Oracle's cleanup crew. When a user session dies (network drop, app crash, killed process), PMON detects it, rolls back uncommitted transactions, releases locks, and frees SGA resources. It also registers the database with the Listener.",
+    points: [
+      "Detects dead processes within ~30 seconds",
+      "Releases all locks held by dead sessions - unblocks waiting users",
+      "Registers database instance with Listener for dynamic service registration",
+      "In RAC, PMON monitors local processes only"
+    ],
+    analogy: "Like a restaurant bouncer who notices when a customer suddenly leaves without paying, cleans up their table, and frees the seat for the next guest.",
+    code: "SELECT s.sid, s.serial#, s.status FROM v$session s LEFT JOIN v$process p ON s.paddr = p.addr WHERE s.status = 'KILLED';"
+  },
+  smon: {
+    cat: "Background Process",
+    title: "SMON - System Monitor",
+    color: "#d97706",
+    desc: "SMON is the crash recovery hero. When Oracle starts after a crash, SMON reads the redo logs and performs two phases: (1) Roll Forward - apply all changes since last checkpoint, then (2) Roll Back - undo uncommitted transactions using Undo data.",
+    points: [
+      "Phase 1: Roll Forward - apply all redo from last checkpoint",
+      "Phase 2: Roll Back - use Undo to reverse uncommitted transactions",
+      "Database opens after roll forward; roll back happens in background",
+      "Also coalesces free space and cleans up temporary segments"
+    ],
+    analogy: "Like a detective who arrives at a crime scene (crashed database), reviews security footage (redo logs), and reconstructs exactly what happened to restore order.",
+    code: "SELECT sofar, totalwork, sofar/totalwork*100 pct_done FROM v$session_longops WHERE opname = 'SMON';"
+  },
+  arcn: {
+    cat: "Background Process",
+    title: "ARCn - Archiver",
+    color: "#a855f7",
+    desc: "ARCn copies filled online redo log groups to archive destinations. Archive logs are the foundation of Point-in-Time Recovery and Data Guard. Without ARCHIVELOG mode, you can only recover to your last backup - not to a specific moment.",
+    points: [
+      "Multiple ARCn processes run in parallel (ARC0, ARC1...)",
+      "If all ARCn processes are busy, sessions halt with 'log file switch (archiving needed)'",
+      "Archive destinations: local disk, standby, or tape",
+      "ARCHIVELOG mode is mandatory for production databases"
+    ],
+    analogy: "Like a security guard who makes backup copies of surveillance tapes before they're recorded over. Essential for investigating past incidents.",
+    code: "SELECT dest_id, status, destination FROM v$archive_dest WHERE status != 'INACTIVE';"
+  },
+  mmon: {
+    cat: "Background Process",
+    title: "MMON - Manageability Monitor",
+    color: "#22d3ee",
+    desc: "MMON collects performance statistics every hour and stores them in AWR (Automatic Workload Repository). It also triggers ADDM analysis after each snapshot and manages memory advisors.",
+    points: [
+      "AWR snapshots every SNAP_INTERVAL (default 60 min)",
+      "ADDM runs automatically after each pair of snapshots",
+      "MMNL (lightweight) flushes active session history between snapshots",
+      "DBA_HIST_* views expose all AWR data for trend analysis"
+    ],
+    analogy: "Like a restaurant health inspector who visits regularly, takes notes on everything, and generates reports on what is working well and what needs improvement.",
+    code: "EXEC DBMS_WORKLOAD_REPOSITORY.MODIFY_SNAPSHOT_SETTINGS(interval => 30, retention => 20160);"
+  },
+  datafile: {
+    cat: "Storage - Data",
+    title: "Datafiles (.dbf)",
+    color: "#d97706",
+    desc: "Datafiles are the OS files that physically store all your database data - table rows, index entries, LOBs, undo segments. They are grouped into tablespaces. I/O performance on datafiles is the floor under all query performance.",
+    points: [
+      "Each tablespace has one or more datafiles",
+      "ASM abstracts datafiles into disk groups with automatic striping",
+      "Locally Managed Tablespaces (LMT) use bitmaps for extents - faster",
+      "ASSM eliminates freelist contention in high-concurrency OLTP"
+    ],
+    analogy: "Like the pantry in a restaurant - all the ingredients (data) are stored here permanently. The kitchen (Buffer Cache) fetches from here when needed.",
+    code: "SELECT f.file#, f.name, s.phyrds, s.phywrts FROM v$filestat s JOIN v$datafile f ON s.file# = f.file# ORDER BY s.phyrds + s.phywrts DESC;"
+  },
+  redolog: {
+    cat: "Storage - Recovery",
+    title: "Online Redo Log Files",
+    color: "#ef4444",
+    desc: "Redo log files record every change as redo vectors - the minimum info needed to re-apply changes during recovery. Oracle cycles through at least 2 groups. When a group fills, a log switch occurs and ARCn archives it.",
+    points: [
+      "Each group should have 2+ multiplexed members on different disks",
+      "Log switch causes brief 'log file switch completion' wait",
+      "WAL guarantee: LGWR must write here before COMMIT succeeds",
+      "Active = currently written; Inactive = filled, can be archived"
+    ],
+    analogy: "Like a security camera's tape recorder - it constantly records everything that happens. If something goes wrong, you can replay the tapes to reconstruct events.",
+    code: "SELECT group#, status, members, bytes/1024/1024 size_mb FROM v$log ORDER BY group#;"
+  },
+  controlfile: {
+    cat: "Storage - Metadata",
+    title: "Control File",
+    color: "#10b981",
+    desc: "The control file is Oracle's ID card. It records the database name, all datafile and redo log locations, current SCN, checkpoint info, and RMAN backup metadata. Oracle reads it on every startup to know what files exist.",
+    points: [
+      "Always multiplex to 3+ copies on different disks",
+      "Contains current SCN - updated on every checkpoint and log switch",
+      "RMAN uses it (or recovery catalog) to track backups",
+      "CONTROL_FILES parameter lists all multiplex locations"
+    ],
+    analogy: "Like a restaurant's master inventory list - it tells you where everything is stored, what is available, and the current state of operations.",
+    code: "SELECT name, status FROM v$controlfile;"
+  },
+  archivelog: {
+    cat: "Storage - Recovery",
+    title: "Archive Log Files",
+    color: "#a855f7",
+    desc: "Archive logs are permanent copies of filled online redo log groups. They enable Point-in-Time Recovery, Data Guard standby apply, and GoldenGate capture. Without them, you can only recover to your last backup.",
+    points: [
+      "ARCHIVELOG mode is mandatory for production - enables PITR",
+      "Data Guard ships archive logs to standby for synchronization",
+      "GoldenGate LogMiner reads archives to capture DML changes",
+      "Retention must cover your longest recovery window + backup frequency"
+    ],
+    analogy: "Like keeping old security camera tapes in a vault. You hope you never need them, but if something serious happens, they're the only way to reconstruct what occurred.",
+    code: "SELECT TRUNC(completion_time) day, COUNT(*) logs, ROUND(SUM(blocks*block_size)/1024/1024/1024,2) gb FROM v$archived_log WHERE completion_time > SYSDATE - 7 GROUP BY TRUNC(completion_time);"
+  },
+  spfile: {
+    cat: "Storage - Config",
+    title: "SPFILE (Server Parameter File)",
+    color: "#22d3ee",
+    desc: "The SPFILE is a binary configuration file that persists database settings across restarts. ALTER SYSTEM SET commands can update it immediately (MEMORY), persist it (SPFILE), or both (BOTH). The old PFILE was a text file.",
+    points: [
+      "SCOPE=MEMORY - change now, lost on restart",
+      "SCOPE=SPFILE - persist after restart, not active yet",
+      "SCOPE=BOTH - immediate + persistent (default)",
+      "Always backup before major changes: CREATE PFILE FROM SPFILE"
+    ],
+    analogy: "Like a restaurant's operating manual - it specifies how many cooks (processes), how big the kitchen (SGA), and all other settings. Read at startup every day.",
+    code: "CREATE PFILE = '/tmp/init_backup.ora' FROM SPFILE;"
+  },
+  tempfile: {
+    cat: "Storage - Temporary",
+    title: "Tempfiles",
+    color: "#64748b",
+    desc: "Tempfiles back the TEMP tablespace, used for sort operations, hash joins, and global temporary tables that spill from PGA. Unlike datafiles, tempfile contents are never written to redo - they're recreated on startup if lost.",
+    points: [
+      "If PGA is too small, sorts spill to TEMP (100x slower!)",
+      "Multiple TEMP tablespaces can isolate batch from OLTP workloads",
+      "ORA-01652 = TEMP tablespace full - queries too aggressive or TEMP too small",
+      "High-throughput sequential I/O - benefit from fast storage"
+    ],
+    analogy: "Like a restaurant's temporary prep area - used when the main kitchen (PGA) is too small for a big catering order. Work happens here, but it is not permanent.",
+    code: "SELECT tablespace_name, total_blocks * 8/1024 total_mb, used_blocks * 8/1024 used_mb FROM v$sort_segment;"
+  },
+  rac: {
+    cat: "RAC - High Availability",
+    title: "RAC - Real Application Clusters",
+    color: "#22d3ee",
+    desc: "RAC allows multiple Oracle instances on different servers to share one database. Each node has its own SGA and processes, but they all access the same datafiles via shared storage (ASM on SAN/NFS).",
+    points: [
+      "Cache Fusion: dirty blocks ship directly node-to-node over interconnect",
+      "GCS tracks which node owns each buffer and coordinates transfers",
+      "GES manages distributed locks across all nodes",
+      "Each node writes to its own dedicated redo log group"
+    ],
+    analogy: "Like multiple restaurant locations sharing one central kitchen and pantry. Each location has its own staff (processes) and prep area (SGA), but they all pull from the same inventory (datafiles).",
+    code: "SELECT event, ROUND(time_waited/total_waits, 2) avg_ms FROM gv$system_event WHERE event LIKE 'gc %';"
+  },
+  gcs: {
+    cat: "RAC - Cache",
+    title: "GCS - Global Cache Service",
+    color: "#22d3ee",
+    desc: "GCS tracks ownership of every buffer block across all RAC nodes. When Node B needs a block that Node A holds, GCS orchestrates the Cache Fusion transfer - directing Node A to ship the block directly to Node B.",
+    points: [
+      "Every block has a master node assigned by GCS",
+      "Block states: LOCAL, SHARED (multiple readers), EXCLUSIVE (one writer)",
+      "Cache Fusion avoids disk I/O - block travels RAM-to-RAM",
+      "High gc waits indicate hot blocks ping-ponging between nodes"
+    ],
+    analogy: "Like a warehouse manager who knows exactly which branch has a specific item in stock, and arranges direct transfer between branches instead of ordering from the supplier.",
+    code: "SELECT inst_id, file#, block#, gc_current_block_served FROM gv$segment_statistics WHERE statistic_name = 'gc current blocks received' ORDER BY value DESC;"
+  },
+  ges: {
+    cat: "RAC - Locks",
+    title: "GES - Global Enqueue Service",
+    color: "#22d3ee",
+    desc: "GES manages distributed locks across all RAC nodes. When a session on Node 1 locks a row, GES ensures sessions on Node 2 see that lock. Without GES, nodes could independently grant conflicting locks.",
+    points: [
+      "Row-level TX locks registered with GES - cross-node blocking works",
+      "DDL locks, sequence cache, and dictionary enqueues flow through GES",
+      "High gc cr waits can indicate GES overhead from cross-node contention",
+      "GESPERFSTAT view shows detailed enqueue metrics"
+    ],
+    analogy: "Like a shared reservation system across multiple restaurant locations - if Table 5 is booked at Location A, Location B must know too, so they don't double-book.",
+    code: "SELECT event, total_waits, time_waited FROM gv$system_event WHERE event LIKE 'global enqueue%';"
+  },
+  dataguard: {
+    cat: "High Availability - DR",
+    title: "Data Guard - Standby Database",
+    color: "#10b981",
+    desc: "Data Guard maintains standby databases in sync with the primary by continuously applying redo. In Maximum Availability mode (SYNC), every COMMIT waits for standby acknowledgment - zero data loss on failover.",
+    points: [
+      "Physical Standby: block-for-block copy, kept in sync via redo apply",
+      "Logical Standby: applies SQL-level changes via LogMiner",
+      "Protection modes: Maximum Protection, Availability, Performance",
+      "Fast-Start Failover (FSFO) automates failover in under 30 seconds"
+    ],
+    analogy: "Like having a fully-staffed backup restaurant that mirrors everything the main location does. If the main location burns down, the backup is ready to serve customers immediately.",
+    code: "SELECT name, value, datum_time FROM v$dataguard_stats WHERE name IN ('apply lag', 'transport lag');"
+  },
+  user: {
+    cat: "Connectivity",
+    title: "Application / User Sessions",
+    color: "#a855f7",
+    desc: "User sessions connect to Oracle via Oracle Net (SQL*Net). Each session gets a dedicated server process with its own PGA. The server process executes SQL on behalf of the user, reading from SGA and writing to disk as needed.",
+    points: [
+      "Dedicated server: one OS process per session - best for OLTP",
+      "Shared server (MTS): dispatcher routes many sessions to a pool",
+      "Connection pools (JDBC/UCP) avoid connect/disconnect overhead",
+      "TAF in RAC reconnects failed sessions to surviving nodes"
+    ],
+    analogy: "Like a customer at a restaurant. You (user) sit at a table (session), a waiter (server process) is assigned just to you, and takes your orders (SQL) to the kitchen (SGA) and back.",
+    code: "SELECT s.sid, s.serial#, s.username, s.status, s.event, SUBSTR(q.sql_text,1,60) sql_text FROM v$session s LEFT JOIN v$sql q ON s.sql_id = q.sql_id WHERE s.type = 'USER';"
+  },
+  listener: {
+    cat: "Connectivity",
+    title: "Listener (tnslsnr)",
+    color: "#22d3ee",
+    desc: "The Listener is Oracle's receptionist. It listens on a network port (default 1521) for incoming connection requests. When a user tries to connect, the Listener validates the request and either spawns a new server process or assigns an existing one (in shared server mode).",
+    points: [
+      "Listens on a TCP port (default 1521) for connection requests",
+      "Validates database service name and user credentials",
+      "Spawns a dedicated server process for each new connection",
+      "In shared server mode, hands off to a dispatcher instead"
+    ],
+    analogy: "Like a restaurant host who greets you at the door, checks your reservation (service name), and assigns you a waiter (server process).",
+    code: "SELECT * FROM v$listener_network;"
+  },
+  resultcache: {
+    cat: "SGA - Optimization",
+    title: "Result Cache",
+    color: "#22d3ee",
+    desc: "The Result Cache stores actual query results (not just plans) in the SGA. On subsequent identical executions, Oracle returns the cached result without re-executing - no block reads, no sorts, no joins.",
+    points: [
+      "Ideal for: reference data, aggregations, dimension lookups",
+      "Auto-invalidated when underlying tables are modified",
+      "RESULT_CACHE hint forces caching; RESULT_CACHE_MODE=FORCE caches all",
+      "V$RESULT_CACHE_STATISTICS shows hit rate and memory usage"
+    ],
+    analogy: "Like writing down answers to frequently asked questions on a whiteboard. When someone asks again, just point to the board instead of re-calculating.",
+    code: "SELECT /*+ RESULT_CACHE */ country_code, country_name FROM ref_countries;"
+  },
+  javapool: {
+    cat: "SGA - Memory",
+    title: "Java Pool",
+    color: "#fb923c",
+    desc: "The Java Pool is an area of memory within the SGA that stores all session-specific Java code and data within the Oracle JVM (Java Virtual Machine). This includes Java objects, classes, methods, and execution state for Java stored procedures and triggers.",
+    points: [
+      "Stores shared Java class metadata (methods, code vectors) for all sessions",
+      "For dedicated servers: shared class parts only; per-session state lives in PGA",
+      "For shared servers: includes UGA state for each session within the Java pool",
+      "Java Pool Advisor helps predict parse rate impact from size changes",
+      "Size controlled by JAVA_POOL_SIZE or auto-tuned via SGA_TARGET"
+    ],
+    analogy: "Like a dedicated Java cookbook shelf in the shared kitchen. When chefs need to cook Java recipes (stored procedures), they grab the shared cookbooks from here instead of bringing their own every time.",
+    code: "SELECT name, bytes/1024/1024 mb FROM v$sgastat WHERE pool = 'java pool';"
+  },
+  inmemory: {
+    cat: "SGA - Analytics",
+    title: "In-Memory Area",
+    color: "#f87171",
+    desc: "The In-Memory Area is a columnar store inside the SGA (Oracle 12c+). It stores table data in column-major format with SIMD compression, enabling analytical queries to run 100x faster by scanning only needed columns.",
+    points: [
+      "Row store and columnar store coexist - DML updates both automatically",
+      "IMCU units with min/max metadata enable Storage Index pruning",
+      "Best for: fact table scans, aggregations, columnar access patterns",
+      "ALTER TABLE sales INMEMORY PRIORITY CRITICAL"
+    ],
+    analogy: "Like organizing a recipe book by ingredient instead of by recipe. If you need to find all recipes using 'tomatoes', it is much faster to look at the tomato section than scan every recipe.",
+    code: "ALTER TABLE sales INMEMORY INMEMORY_COMPRESSION FOR QUERY HIGH PRIORITY CRITICAL;"
+  },
+  subpools: {
+    cat: "SGA - Sub-Pools",
+    title: "KEEP / RECYCLE Pools",
+    color: "#6366f1",
+    desc: "Oracle's Buffer Cache can be divided into named sub-pools. KEEP holds objects permanently (never aged out). RECYCLE is for large objects that shouldn't pollute the DEFAULT pool.",
+    points: [
+      "KEEP pool: ideal for small hot lookup tables - always in cache",
+      "RECYCLE pool: for large sequential scans - prevents evicting OLTP blocks",
+      "Size DB_KEEP_CACHE_SIZE and DB_RECYCLE_CACHE_SIZE independently",
+      "Objects must be explicitly assigned: ALTER TABLE t STORAGE (BUFFER_POOL KEEP)"
+    ],
+    analogy: "Like having a 'favorites' shelf in the fridge (KEEP) for items you always need, and a 'bulk items' shelf (RECYCLE) for large catering orders that shouldn't crowd the regular space.",
+    code: "ALTER TABLE ref_currency STORAGE (BUFFER_POOL KEEP);"
+  },
+  reco: {
+    cat: "Background Process",
+    title: "RECO - Distributed Recovery",
+    color: "#fb923c",
+    desc: "RECO automatically resolves in-doubt distributed transactions - transactions that span multiple databases using database links and were interrupted mid-commit. RECO periodically contacts remote databases to determine the correct outcome.",
+    points: [
+      "Two-Phase Commit (2PC): prepare phase then commit/rollback",
+      "In-doubt transactions appear in DBA_2PC_PENDING",
+      "If RECO cannot connect, transaction remains in-doubt and rows stay locked",
+      "Manual resolution: COMMIT FORCE or ROLLBACK FORCE (use with care!)"
+    ],
+    analogy: "Like a bank manager who handles transactions between branches. If the connection drops mid-transfer, they figure out whether the money actually moved or not.",
+    code: "SELECT local_tran_id, global_tran_id, state FROM dba_2pc_pending;"
+  }
+};
+
+var SCENARIOS = {
+  none: { flows: [], badges: [], steps: [] },
+  startup: {
+    flows: ['f-startup-1','f-startup-2','f-startup-3','f-startup-4','f-startup-5','f-startup-6'],
+    badges: ['b-startup-1','b-startup-2','b-startup-3','b-startup-4','b-startup-5','b-startup-6'],
+    steps: [
+      { id: 'b-startup-1', text: 'Read SPFILE - database config, SGA size, process count' },
+      { id: 'b-startup-2', text: 'Start background processes: SMON, PMON, DBWn, LGWR, CKPT...' },
+      { id: 'b-startup-3', text: 'Allocate SGA memory in RAM (Buffer Cache, Shared Pool, etc.)' },
+      { id: 'b-startup-4', text: 'Read Control File - learn datafile and redo log locations' },
+      { id: 'b-startup-5', text: 'Open data files and redo log files' },
+      { id: 'b-startup-6', text: 'SMON performs recovery if database crashed previously' }
+    ],
+    info: {
+      cat: "Scenario - Database Startup",
+      title: "How Oracle Starts Up",
+      color: "#22d3ee",
+      desc: "Starting Oracle is like opening a restaurant: first you read the operating manual (SPFILE), hire the staff (background processes), set up the kitchen (SGA), check the inventory list (Control File), and finally open the doors. If the restaurant closed unexpectedly last night, the manager (SMON) checks what needs fixing before customers arrive.",
+      steps: [
+        { n:'1', t:'NOMOUNT: Read SPFILE, allocate SGA, start background processes' },
+        { n:'2', t:'MOUNT: Read Control File, locate all datafiles and redo logs' },
+        { n:'3', t:'OPEN: Open all files, check consistency, SMON recovery if needed' },
+        { n:'4', t:'Database is ready for connections!' }
+      ]
+    }
+  },
+  connect: {
+    flows: ['f-connect-1','f-connect-2','f-connect-3','f-connect-4'],
+    badges: ['b-connect-1','b-connect-2','b-connect-3','b-connect-4'],
+    steps: [
+      { id: 'b-connect-1', text: 'User application sends connection request' },
+      { id: 'b-connect-2', text: 'Listener accepts request on port 1521' },
+      { id: 'b-connect-3', text: 'Listener spawns a dedicated Server Process' },
+      { id: 'b-connect-4', text: 'PGA memory allocated for this session' }
+    ],
+    info: {
+      cat: "Scenario - User Connection",
+      title: "How You Connect to Oracle",
+      color: "#a855f7",
+      desc: "Connecting to Oracle is like arriving at a restaurant: you walk in (open app), the host greets you (Listener), assigns you a personal waiter (Server Process), and sets a table just for you (PGA). From now on, your waiter handles all your requests.",
+      steps: [
+        { n:'1', t:'User process sends connection request over network' },
+        { n:'2', t:'Listener validates service name and credentials' },
+        { n:'3', t:'Listener spawns dedicated server process (or assigns dispatcher in shared mode)' },
+        { n:'4', t:'Server process allocates PGA for session state and private SQL area' }
+      ]
+    }
+  },
+  query: {
+    flows: ['f-query-1','f-query-2','f-query-3','f-query-4','f-query-5'],
+    badges: ['b-query-1','b-query-2','b-query-3','b-query-4'],
+    steps: [
+      { id: 'b-query-1', text: 'SQL parsed and planned in Shared Pool (Library Cache)' },
+      { id: 'b-query-2', text: 'Buffer Cache checked for needed blocks (logical read)' },
+      { id: 'b-query-3', text: 'Cache miss: read blocks from datafile into Buffer Cache' },
+      { id: 'b-query-4', text: 'Return formatted results to user' }
+    ],
+    info: {
+      cat: "Scenario - SELECT Execution",
+      title: "How a SELECT Query Works",
+      color: "#6366f1",
+      desc: "A SELECT query follows three phases: Parse (check syntax, find cached plan), Execute (fetch data from Buffer Cache or disk), and Fetch (return rows to client). The first parse is expensive - subsequent executions reuse the cached plan.",
+      steps: [
+        { n:'1', t:'Parse: Check Library Cache for existing plan. Hard parse if new, soft parse if cached.' },
+        { n:'2', t:'Execute: Check Buffer Cache for each required block. Hit = fast memory read. Miss = slow disk read.' },
+        { n:'3', t:'Fetch: Server process formats rows and sends to client over network.' },
+        { n:'4', t:'Next time same query runs: soft parse + cache hit = lightning fast!' }
+      ]
+    }
+  },
+  dml: {
+    flows: ['f-dml-1','f-dml-2','f-dml-3','f-dml-4','f-dml-5','f-dml-6','f-dml-7'],
+    badges: ['b-dml-1','b-dml-2','b-dml-3','b-dml-4','b-dml-5','b-dml-6','b-dml-7'],
+    steps: [
+      { id: 'b-dml-1', text: 'Parse SQL in Shared Pool' },
+      { id: 'b-dml-2', text: 'Read data block into Buffer Cache (if not already there)' },
+      { id: 'b-dml-3', text: 'Write UNDO record (before-image) for rollback protection' },
+      { id: 'b-dml-4', text: 'Modify block in Buffer Cache - mark as DIRTY' },
+      { id: 'b-dml-5', text: 'Write REDO entry to Redo Log Buffer (change diary)' },
+      { id: 'b-dml-6', text: 'On COMMIT: LGWR flushes redo to disk (WAL guarantee)' },
+      { id: 'b-dml-7', text: 'DBWn writes dirty blocks to datafiles later (lazy write)' }
+    ],
+    info: {
+      cat: "Scenario - DML with Undo/Redo",
+      title: "How UPDATE/INSERT/DELETE Works",
+      color: "#ec4899",
+      desc: "DML is more complex than SELECT because Oracle must protect your data at every step. Before changing anything, it saves the old value (Undo), records the change (Redo), and only then modifies memory. On COMMIT, LGWR guarantees durability by writing redo to disk. The actual datafile update happens later via DBWn.",
+      steps: [
+        { n:'1', t:'Parse SQL and read target block into Buffer Cache' },
+        { n:'2', t:'Write UNDO: save before-image so we can rollback if needed' },
+        { n:'3', t:'Modify block in Buffer Cache - mark as DIRTY (not yet on disk)' },
+        { n:'4', t:'Write REDO: record change in Redo Log Buffer for recovery' },
+        { n:'5', t:'COMMIT: LGWR flushes redo to disk - transaction is durable!' },
+        { n:'6', t:'Later: DBWn lazily writes dirty blocks to datafiles' }
+      ]
+    }
+  },
+  commit: {
+    flows: ['f-commit-1','f-commit-2','f-commit-3','f-commit-4','f-commit-5'],
+    badges: ['b-commit-1','b-commit-2','b-commit-3','b-commit-4','b-commit-5'],
+    steps: [
+      { id: 'b-commit-1', text: 'Application issues COMMIT' },
+      { id: 'b-commit-2', text: 'LGWR flushes redo buffer to disk (WAL guarantee)' },
+      { id: 'b-commit-3', text: 'Redo log file updated - change is durable' },
+      { id: 'b-commit-4', text: 'COMMIT success returned to application' },
+      { id: 'b-commit-5', text: 'DBWn writes dirty blocks to datafiles lazily (later)' }
+    ],
+    info: {
+      cat: "Scenario - Write-Ahead Logging",
+      title: "How COMMIT Guarantees Durability",
+      color: "#ef4444",
+      desc: "When you COMMIT, Oracle's WAL guarantee requires LGWR to flush all redo to disk before returning success. This is the minimum I/O for durability. The buffer cache blocks are NOT flushed on commit - DBWn writes them lazily later. This design makes Oracle fast: sequential redo writes are much faster than random datafile I/O.",
+      steps: [
+        { n:'1', t:'User issues COMMIT' },
+        { n:'2', t:'LGWR flushes Redo Log Buffer to online redo log file on disk' },
+        { n:'3', t:'Redo log now contains durable record of all changes' },
+        { n:'4', t:'COMMIT returns success - transaction is safe!' },
+        { n:'5', t:'DBWn writes dirty blocks to datafiles asynchronously (minutes later)' }
+      ]
+    }
+  },
+  checkpoint: {
+    flows: ['f-ckpt-1','f-ckpt-2','f-ckpt-3','f-ckpt-4'],
+    badges: ['b-ckpt-1','b-ckpt-2','b-ckpt-3','b-ckpt-4'],
+    steps: [
+      { id: 'b-ckpt-1', text: 'CKPT signals DBWn to flush dirty blocks' },
+      { id: 'b-ckpt-2', text: 'DBWn writes all dirty blocks to datafiles' },
+      { id: 'b-ckpt-3', text: 'CKPT updates control file and datafile headers with current SCN' },
+      { id: 'b-ckpt-4', text: 'ARCn archives the now-filled redo log group' }
+    ],
+    info: {
+      cat: "Scenario - Consistency Point",
+      title: "How Checkpoints Work",
+      color: "#10b981",
+      desc: "A checkpoint creates a consistent recovery point on disk. After a checkpoint, Oracle only needs to apply redo from that SCN forward during crash recovery. More frequent checkpoints reduce recovery time but increase I/O. FAST_START_MTTR_TARGET lets you specify your maximum acceptable recovery time in seconds.",
+      steps: [
+        { n:'1', t:'CKPT fires (log switch, FAST_START_MTTR_TARGET, or manual)' },
+        { n:'2', t:'CKPT signals DBWn to write all dirty blocks to datafiles' },
+        { n:'3', t:'DBWn writes the blocks - this is the expensive I/O phase' },
+        { n:'4', t:'CKPT updates control file SCN - this is the new recovery start point' }
+      ]
+    }
+  },
+  rac: {
+    flows: ['f-rac-1','f-rac-2','f-rac-3'],
+    badges: ['b-rac-1','b-rac-2','b-rac-3'],
+    steps: [
+      { id: 'b-rac-1', text: 'Node 2 session requests Block X' },
+      { id: 'b-rac-2', text: 'GCS finds Block X is held dirty by Node 1' },
+      { id: 'b-rac-3', text: 'Cache Fusion ships block RAM-to-RAM over interconnect' }
+    ],
+    info: {
+      cat: "Scenario - RAC High Availability",
+      title: "Cache Fusion - Zero-Disk Block Transfer",
+      color: "#22d3ee",
+      desc: "Cache Fusion is what makes RAC work. Instead of forcing Node 1 to write a dirty block to disk and then having Node 2 read it back, GCS ships the block directly from Node 1's SGA to Node 2's SGA over the private interconnect. This only works because the interconnect is fast enough (<1ms latency).",
+      steps: [
+        { n:'1', t:'Node 2 session needs Block X - not in Node 2 Buffer Cache' },
+        { n:'2', t:'GCS consulted - knows Node 1 holds a dirty copy of Block X' },
+        { n:'3', t:'GCS directs Node 1 to ship Block X over private interconnect to Node 2' },
+        { n:'4', t:'Node 2 receives Block X in its Buffer Cache - zero disk I/O!' }
+      ]
+    }
+  },
+  recovery: {
+    flows: ['f-crash-1','f-crash-3'],
+    badges: ['b-crash-1','b-crash-3'],
+    steps: [
+      { id: 'b-crash-1', text: 'SMON reads redo logs from last checkpoint SCN' },
+      { id: 'b-crash-3', text: 'Roll forward: apply all committed and uncommitted changes' },
+      { id: 'b-crash-2', text: 'Roll back: reverse uncommitted transactions using undo' }
+    ],
+    info: {
+      cat: "Scenario - Crash Recovery",
+      title: "How SMON Recovers After a Crash",
+      color: "#10b981",
+      desc: "After a crash, SMON performs automatic recovery in two phases. First, it rolls forward all changes since the last checkpoint - including uncommitted ones - to make datafiles consistent with what was in memory. Then it uses undo data to roll back uncommitted transactions. The database opens after roll forward; roll back happens in the background.",
+      steps: [
+        { n:'1', t:'Oracle starts, SMON reads control file to find last checkpoint SCN' },
+        { n:'2', t:'SMON reads redo logs forward from that SCN - applying all change vectors' },
+        { n:'3', t:'Database opens to users. Uncommitted transactions are still present in datafiles.' },
+        { n:'4', t:'SMON uses undo segments to roll back uncommitted transactions in background' }
+      ]
+    }
+  }
+};
+
+var currentScenario = 'none';
+var currentComp = null;
+var stepTimer = null;
+var currentStep = -1;
+
+function setScenario(name) {
+  clearScenario();
+  currentScenario = name;
+
+  document.querySelectorAll('.sc-btn').forEach(function(b) {
+    b.classList.remove('on');
+    if (b.getAttribute('onclick') === "setScenario('" + name + "')") b.classList.add('on');
+  });
+
+  var sc = SCENARIOS[name];
+  if (!sc) return;
+
+  sc.flows.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.opacity = '0.85';
+    var track = document.getElementById(id + '-track');
+    if (track) { track.style.opacity = '0.85'; track.classList.add('active'); }
+  });
+
+  if (sc.info) {
+    showScenarioInfo(sc);
+  }
+
+  if (sc.steps && sc.steps.length > 0) {
+    currentStep = -1;
+    animateNextStep(sc);
+  }
+}
+
+function animateNextStep(sc) {
+  currentStep++;
+  if (currentStep >= sc.steps.length) {
+    return;
+  }
+  var step = sc.steps[currentStep];
+  var badge = document.getElementById(step.id);
+  if (badge) badge.classList.add('active');
+  var bg = document.getElementById('bg-' + step.id);
+  if (bg) bg.classList.add('active');
+
+  var stepEls = document.querySelectorAll('.sc-step');
+  stepEls.forEach(function(el, i) { el.classList.toggle('active-step', i === currentStep); });
+
+  stepTimer = setTimeout(function() { animateNextStep(sc); }, 1100);
+}
+
+function clearScenario() {
+  if (stepTimer) clearTimeout(stepTimer);
+  document.querySelectorAll('.flow-arrow').forEach(function(el) { el.style.opacity = '0'; });
+  document.querySelectorAll('.flow-arrow-track').forEach(function(el) { el.style.opacity = '0'; el.classList.remove('active'); });
+  document.querySelectorAll('.step-badge').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.badge-bg').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelectorAll('.sc-step').forEach(function(el) { el.classList.remove('active-step'); });
+}
+
+function showScenarioInfo(sc) {
+  var info = sc.info;
+  document.getElementById('info-default').style.display = 'none';
+  document.getElementById('info-content').style.display = 'flex';
+  document.getElementById('info-content').style.flexDirection = 'column';
+  document.getElementById('info-category').textContent = info.cat;
+  document.getElementById('info-category').style.color = info.color;
+  document.getElementById('info-title').textContent = info.title;
+  document.getElementById('info-desc').textContent = info.desc;
+
+  var extra = '';
+  if (info.steps) {
+    extra += '<div class="info-section-title">Step-by-step</div>';
+    extra += '<div class="scenario-steps">';
+    info.steps.forEach(function(s, i) {
+      extra += '<div class="sc-step" id="sstep-' + i + '">';
+      extra += '<div class="sc-step-num">' + s.n + '</div>';
+      extra += '<div>' + s.t + '</div>';
+      extra += '</div>';
+    });
+    extra += '</div>';
+  }
+  document.getElementById('info-extra').innerHTML = extra;
+
+  if (currentComp) {
+    var prev = document.getElementById('comp-' + currentComp);
+    if (prev) prev.classList.remove('selected');
+    currentComp = null;
+  }
+}
+
+function selectComp(key) {
+  var data = INFO[key];
+  if (!data) return;
+
+  if (currentComp) {
+    var prev = document.getElementById('comp-' + currentComp);
+    if (prev) prev.classList.remove('selected');
+  }
+  currentComp = key;
+  var el = document.getElementById('comp-' + key) || document.getElementById('comp-' + key + '1');
+  if (el) el.classList.add('selected');
+
+  setScenario('none');
+  document.querySelectorAll('.sc-btn').forEach(function(b) { b.classList.remove('on'); });
+
+  document.getElementById('info-default').style.display = 'none';
+  document.getElementById('info-content').style.display = 'flex';
+  document.getElementById('info-content').style.flexDirection = 'column';
+
+  document.getElementById('info-category').textContent = data.cat;
+  document.getElementById('info-category').style.color = data.color;
+  document.getElementById('info-title').textContent = data.title;
+  document.getElementById('info-desc').textContent = data.desc;
+
+  var extra = '';
+  if (data.points && data.points.length) {
+    extra += '<div class="info-section-title">Key Points</div>';
+    data.points.forEach(function(p) {
+      extra += '<div class="info-point">';
+      extra += '<div class="info-bullet" style="background:' + data.color + '"></div>';
+      extra += '<div>' + p + '</div>';
+      extra += '</div>';
+    });
+  }
+  if (data.analogy) {
+    extra += '<div class="analogy-box">';
+    extra += '<div class="analogy-title">Analogy</div>';
+    extra += '<div class="analogy-text">' + data.analogy + '</div>';
+    extra += '</div>';
+  }
+  if (data.code) {
+    extra += '<div class="info-section-title">Try This SQL</div>';
+    extra += '<div class="info-code">' + data.code + '</div>';
+  }
+  document.getElementById('info-extra').innerHTML = extra;
+}
+
+// Stretch SVG to fill container exactly by adjusting viewBox to match container aspect ratio
+// This keeps the coordinate system correct so hit-testing works perfectly everywhere
+(function fitSVG() {
+  var svg = document.getElementById('arch-svg');
+  var pane = document.getElementById('diagram-pane');
+  var BASE_W = 860, BASE_H = 515;
+
+  function resize() {
+    var W = pane.clientWidth;
+    var H = pane.clientHeight;
+    var scaleX = W / BASE_W;
+    var scaleY = H / BASE_H;
+    // Use the smaller scale to decide how to expand the viewBox
+    // to fill the full container without distortion
+    if (scaleX < scaleY) {
+      // Container is taller relative to content — expand viewBox height
+      var newH = BASE_W * H / W;
+      svg.setAttribute('viewBox', '0 0 ' + BASE_W + ' ' + newH.toFixed(1));
+    } else {
+      // Container is wider — expand viewBox width
+      var newW = BASE_H * W / H;
+      svg.setAttribute('viewBox', '0 0 ' + newW.toFixed(1) + ' ' + BASE_H);
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+})();
+</script>
+
+</body>
+</html>
